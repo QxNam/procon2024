@@ -2,7 +2,8 @@
 
 Completed:
 - Create board and dies
-- Solution
+
 
 Pending:
+- Solution
 - UI

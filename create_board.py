@@ -1,13 +1,36 @@
 import numpy as np
-import json
+from utils import save_json
 
-def create_board(w, h):
-    board = np.random.randint(0, 3, size=(w, h))
-    board = board.astype(str).tolist()
-    board = [''.join(row) for row in board]
-    return board
+def create_board(w:int, h:int) -> list[str]:
+    '''
+    Create a new board with random values from the range [0, 3]
 
-def create_board_dict(w, h):
+    Args:
+        w (int): Width of the board
+        h (int): Height of the board
+
+    Returns:
+        list: A list of strings representing the board cells, where each cell is represented by a string of '0', '1', '2', or '3
+    '''
+    if w in range(1, 257) and h in range(1, 257):
+        board = np.random.randint(0, 4, size=(w, h))
+        board = board.astype(str).tolist()
+        board = [''.join(row) for row in board]
+        return board
+    else:
+        raise ValueError("Width and height must be between 1 and 256 (inclusive)")
+
+def create_board_dict(w:int, h:int) -> dict:
+    '''
+    Create a dictionary containing the board data and save it as a JSON file
+    
+    Args:
+        w (int): Width of the board
+        h (int): Height of the board
+
+    Returns:
+        dict: A dictionary containing the board data
+    '''
     dict_board = {
         "board": 
             {
@@ -20,9 +43,6 @@ def create_board_dict(w, h):
 
     return dict_board
 
-def save_json(filename, data):
-    with open(f'data/{filename}.json', 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
-
-data = create_board_dict(6, 4)
-save_json('board', data)
+if __name__ == "__main__":
+    data = create_board_dict(6, 4)
+    save_json('board', data)

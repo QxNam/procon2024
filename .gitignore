@@ -177,3 +177,4 @@ pyrightconfig.json
 
 .DS_Store
 *.ipynb
+*.txt

@@ -1,5 +1,5 @@
 import numpy as np
-from utils import save_json
+from .utils import save_json
 
 def create_board(w:int, h:int) -> list[str]:
     '''

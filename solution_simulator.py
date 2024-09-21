@@ -1,5 +1,5 @@
-from utils import load_json, list_to_matrix, check_goal
-from die_cut import apply_die_cut
+from procon.utils import load_json, list_to_matrix, check_goal
+from procon.die_cut import apply_die_cut
 from pprint import pprint
 
 

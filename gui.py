@@ -4,6 +4,7 @@ import sys
 import threading
 import queue
 import random
+
 from screeninfo import get_monitors
 
 # Initialize pygame and pygame_gui

@@ -1,5 +1,5 @@
 import numpy as np
-from utils import save_json
+from .utils import save_json
 
 def create_die(n:int, type='I') -> list[str]:
     '''

@@ -1,6 +1,4 @@
 import numpy as np
-from pprint import pprint
-from utils import list_to_matrix, check_goal, load_json
 
 def get_point(game: np.ndarray, die: np.ndarray, x: int, y: int) -> tuple:
     '''

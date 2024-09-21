@@ -56,8 +56,14 @@ def apply_die_cut(game: np.ndarray, die: np.ndarray, x: int, y: int, d: int) -> 
         np.ndarray: the cut die
     '''
     height, width = game.shape
+    if x<0:
+        die = die[:, -x:]
+    if y<0:
+        die = die[-y:, :]
+    print(die)
     x1, y1, x2, y2 = get_point(game, die, x, y)
     A = game[y1:y2, x1:x2]
+    
     L, P = lift_elements(A, die)
     P_ = (P[0] + y1, P[1] + x1)
     game[P_] = -1

@@ -2,57 +2,84 @@ import numpy as np
 from pprint import pprint
 from utils import list_to_matrix, check_goal, load_json
 
-def apply_die_cut(board:np.ndarray, die:np.ndarray, x:int, y:int, s:int) -> np.ndarray:
+def get_point(game: np.ndarray, die: np.ndarray, x: int, y: int) -> tuple:
     '''
-    Apply die cut to the board
+    Get the point of the die in the game
+    
+    Args:
+        game (np.ndarray): the game game
+        die (np.ndarray): the die
+        x (int): the x coordinate
+        y (int): the y coordinate
+    
+    Returns:
+        tuple: the x_start, y_start, x_end, y_end
+    '''
+    h, w = game.shape
+    _h, _w = die.shape
+    x_end = min(x + _w, w)
+    y_end = min(y + _h, h)
+    x_start, y_start = max(x, 0), max(y, 0)
+
+    return x_start, y_start, x_end, y_end
+
+def lift_elements(A: np.ndarray, die: np.ndarray) -> np.ndarray:
+    '''
+    Lift the elements of the die in the game
+    
+    Args:
+        A (np.ndarray): the game game
+        die (np.ndarray): the die
+        
+    Returns:
+        np.ndarray: the lifted elements
+    '''
+    h, w = A.shape
+    tmp_die = die[:h, :w]
+    res = np.zeros(A.shape, dtype=int)-1
+    pos_1 = np.where(tmp_die == 1)
+    res[pos_1] = A[pos_1]
+    return res, pos_1
+
+def apply_die_cut(game: np.ndarray, die: np.ndarray, x: int, y: int, d: int) -> np.ndarray:
+    '''
+    Cut the die in the game
 
     Args:
-        board (numpy.ndarray): The current board state
-        die (numpy.ndarray): The die to be cut
-        x (int): The x-coordinate of the top-left corner of the die cut
-        y (int): The y-coordinate of the top-left corner of the die cut
-        s (int): The direction of the die cut (0-top, 1-bottom, 2-left, 3-right)
+        game (np.ndarray): the game game
+        die (np.ndarray): the die
+        x (int): the x coordinate
+        y (int): the y coordinate
+        d (int): the d (0-top, 1-bottom, 2-left, 3-right)
 
     Returns:
-        numpy.ndarray: The updated board state after applying the die cut
-
+        np.ndarray: the cut die
     '''
-    # print(die)
-    # Get die dimensions
-    die_rows, die_cols = die.shape
+    height, width = game.shape
+    x1, y1, x2, y2 = get_point(game, die, x, y)
+    A = game[y1:y2, x1:x2]
+    L, P = lift_elements(A, die)
+    P_ = (P[0] + y1, P[1] + x1)
+    game[P_] = -1
+    if d>1:
+        for r in range(y1, y2):
+            col1 = [game[r][i] for i in range(width) if game[r][i] != -1]
+            col2 = [L[r-y1][i] for i in range(len(L[r-y1])) if L[r-y1][i] != -1]
+            if d == 3: # right
+                col = np.concatenate((col1, col2))
+                game[r] = col
+            elif d == 2: # left
+                col = np.concatenate((col2, col1))
+                game[r] = col
+    else:
+        for c in range(x1, x2):
+            row1 = [game[i][c] for i in range(height) if game[i][c] != -1]
+            row2 = [L[i][c-x1] for i in range(len(L)) if L[i][c-x1] != -1][::-1]
+            if d == 1: # bottom
+                row = np.concatenate((row1, row2))
+                game[:, c] = row
+            elif d == 0: # top
+                row = np.concatenate((row2, row1))
+                game[:, c] = row
 
-    # Apply die cut based on direction 's'
-    if s == 0:  # Cut from top
-        # Ensure the die fits on the board starting from (x, y)
-        if x + die_rows > board.shape[0] or y + die_cols > board.shape[1]:
-            raise ValueError("Die cut exceeds board boundaries.")
-        # Subtract die from the board
-        board[x:x + die_rows, y:y + die_cols] -= die
-
-    elif s == 1:  # Cut from bottom
-        # Ensure the die fits on the board starting from the bottom
-        if x - die_rows < 0 or y + die_cols > board.shape[1]:
-            raise ValueError("Die cut exceeds board boundaries.")
-        # Subtract die from the board (starting from bottom)
-        board[x - die_rows:x, y:y + die_cols] -= die
-
-    elif s == 2:  # Cut from left
-        # Ensure the die fits on the board starting from the left
-        if x + die_rows > board.shape[0] or y + die_cols > board.shape[1]:
-            raise ValueError("Die cut exceeds board boundaries.")
-        # Subtract die from the board starting from the left side
-        board[x:x + die_rows, y:y + die_cols] -= die
-
-    elif s == 3:  # Cut from right
-        # Ensure the die fits on the board starting from the right
-        if x + die_rows > board.shape[0] or y - die_cols < 0:
-            raise ValueError("Die cut exceeds board boundaries.")
-        # Subtract die from the board starting from the right side
-        board[x:x + die_rows, y - die_cols:y] -= die
-
-    # Ensure no negative values in the board (cut is binary: cut or not cut)
-    board[board < 0] = 0
-
-    # Convert the board back to the list of strings
-    board = ["".join(map(str, row)) for row in board]
-    return board
+    return game

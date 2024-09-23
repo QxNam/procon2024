@@ -3,22 +3,22 @@ from procon.die_cut import apply_die_cut
 from pprint import pprint
 
 
-def simulator():
+def simulator(folder='./data'):
     # load board and transform to matrix format
-    question = load_json('question')
+    question = load_json(f'{folder}/question')
     game = question['board']['start']
     goal = question['board']['goal']
     game = list_to_matrix(game)
     goal = list_to_matrix(goal)
 
     # load dies and transform to matrix format
-    dies = load_json('cells')
+    dies = load_json('./data/cells')
     patterns = {pat['p']: pat['cells'] for pat in question['general']['patterns']}
     dies.update(patterns)
     dies = {int(p): list_to_matrix(dies[p]) for p in dies}
 
     # # # load solve
-    solve = load_json('answer')
+    solve = load_json(f'{folder}/answer')
     print(game)
     print(f'> max number of solutions: {solve["n"]}')
     print('--'*20)
@@ -34,6 +34,11 @@ def simulator():
         if idx == solve['n']:
             print(f'No solution found after {len(solve["ops"])} steps!')
 
+def example_simulator(example_folder='./example/1'):
+    simulator(folder=example_folder)
+
+
 
 if __name__ == "__main__":
-    simulator()
+    # simulator()
+    example_simulator()

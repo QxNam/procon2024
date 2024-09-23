@@ -8,48 +8,34 @@ Completed:
 Processing:
 - GUI game
 
-## Run simulation with initialization in data
+## To create a game run:
+```bash
+python3 gen_data.py
+```
+Before creating the table, remember to set the initialization parameters.
+
+## To check run:
 ```bash
 python3 solution_simulator.py
 ```
+Before running, remember to name the folder correctly.
 
-```Output
-[[2 2 0 1 0 3]
- [2 1 3 0 3 3]
- [0 2 2 1 0 3]
- [3 2 2 0 3 3]]
-> max number of solutions: 3
+```bash
+# Example 1:
+[[2 3 3 3 1 3]
+ [3 3 2 3 3 1]
+ [1 2 2 3 3 0]
+ [3 0 3 0 0 0]
+ [3 2 0 3 2 2]]
+> max number of solutions: 1
 ----------------------------------------
 Step 1: 
-die: 4, direction: 2, position: (1, 1)
-[[1 1 1 1]
- [1 1 1 1]
- [1 1 1 1]
- [1 1 1 1]]
-[[2 2 0 1 0 3]
- [1 3 0 3 2 3]
- [2 2 1 0 0 3]
- [2 2 0 3 3 3]]
+die: 7, direction: 3, position: (1, 5)
+[[2 3 3 3 1 3]
+ [3 3 2 3 3 1]
+ [1 2 2 3 3 0]
+ [3 0 3 0 0 0]
+ [3 2 0 3 2 2]]
 ----------------------------------------
-Step 2: 
-die: 11, direction: 3, position: (3, -12)
-[[1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
- [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
- [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
- [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]]
-[[2 2 0 1 0 3]
- [1 3 0 3 2 3]
- [2 2 1 0 0 3]
- [2 2 0 3 3 3]]
-----------------------------------------
-Step 3: 
-die: 25, direction: 0, position: (3, 3)
-[[0 1 1 1]
- [1 0 0 1]]
-[[2 2 0 1 3 3]
- [1 3 0 3 0 3]
- [2 2 1 0 2 3]
- [2 2 0 3 0 3]]
-----------------------------------------
-No solution found after 3 steps!
+Found solution after 1 steps!
 ```

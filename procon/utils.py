@@ -9,7 +9,7 @@ def save_json(filename, data) -> None:
         filename (str): file name to save
         data (dict): JSON data to save
     '''
-    with open(f'data/{filename}.json', 'w', encoding='utf-8') as f:
+    with open(f'{filename}.json', 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 def load_json(filename) -> dict:
@@ -22,7 +22,7 @@ def load_json(filename) -> dict:
     Returns:
         dict: loaded JSON data
     '''
-    with open(f'data/{filename}.json', 'r', encoding='utf-8') as file:
+    with open(f'{filename}.json', 'r', encoding='utf-8') as file:
         data = json.load(file)
     return data
 

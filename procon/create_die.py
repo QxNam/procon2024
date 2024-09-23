@@ -1,5 +1,5 @@
 import numpy as np
-from .utils import save_json
+# from .utils import save_json
 
 def create_die(n:int, type='I') -> list[str]:
     '''
@@ -44,6 +44,22 @@ def create() -> dict:
                 break
     return cell
 
+def random_die(w, h):
+    '''
+    Randomly select a die of specified width and height
+    
+    Args:
+        w (int): Width of the die
+        h (int): Height of the die
+
+    Returns:
+        list: A list of strings representing the randomly selected die cells
+    '''
+    cell = [''.join(c) for c in np.random.randint(0, 2, (w, h)).astype(str).tolist()]
+    return cell
+
 if __name__ == '__main__':
-    cells = create()
-    save_json('cells', cells)
+    # cells = create()
+    # save_json('cells', cells)
+    cell = random_die(2, 3)
+    print(cell)

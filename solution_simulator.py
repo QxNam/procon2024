@@ -12,7 +12,7 @@ def simulator(folder='./data'):
     goal = list_to_matrix(goal)
 
     # load dies and transform to matrix format
-    dies = load_json('./data/cells')
+    dies = load_json('./data/fix_die')
     patterns = {pat['p']: pat['cells'] for pat in question['general']['patterns']}
     dies.update(patterns)
     dies = {int(p): list_to_matrix(dies[p]) for p in dies}

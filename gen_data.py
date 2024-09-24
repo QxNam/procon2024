@@ -24,7 +24,7 @@ def auto(example_folder='1', num_step=1, board_shape=(5, 6), general_config=[]):
     start = board.copy()
     board = list_to_matrix(board) # convert to maxtrix to process
     height, width = board_shape
-    dies = load_json('./data/cells')
+    dies = load_json('./data/fix_die')
 
     # gen gerenal config
     n = len(general_config)

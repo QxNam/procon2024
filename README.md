@@ -1,5 +1,8 @@
 # Procon 2024
 
+Get problem and Post answer at `procon_api.ipynb`
+First Create `.env` and add `PROCON_TOKEN`
+
 Completed:
 - Create board and dies
 - Solution

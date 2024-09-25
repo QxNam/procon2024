@@ -1,4 +1,8 @@
 numpy==2.1.1
-pygame-ce
+pygame-ce==2.5.1
 pygame_gui==0.6.12
 screeninfo==0.8.1
+requests==2.32.3
+python-dotenv==1.0.1
+matplotlib==3.9.2
+seaborn==0.13.2

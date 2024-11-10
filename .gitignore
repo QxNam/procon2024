@@ -179,3 +179,4 @@ pyrightconfig.json
 *.txt
 .env
 *.ipynb
+*.exe

@@ -16,6 +16,7 @@ headers = {"Authorization": PROCON_TOKEN}
 def getProblem(question_id:int):
     response = requests.get(f"{url}/question/{question_id}", headers=headers).json()
     try:
+        id_ = response.get('id')
         question_data = eval(response.get('question_data'))
         height = question_data.get('board').get('height')
         width = question_data.get('board').get('width')
@@ -23,8 +24,8 @@ def getProblem(question_id:int):
         goal = question_data.get('board').get('goal')
         n_generated = question_data.get('general', {}).get('n',None)
         general_die = question_data.get('general', {}).get('patterns',[])
-        print(f"Height: {height}, Width: {width}, n_generated: {n_generated}")
         data = {
+            "id": id_,
             "height": height,
             "width": width,
             "start": start,

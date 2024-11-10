@@ -180,3 +180,5 @@ pyrightconfig.json
 .env
 *.ipynb
 *.exe
+*.json
+question_store/*

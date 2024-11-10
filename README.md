@@ -3,42 +3,12 @@
 Get problem and Post answer at `procon_api.ipynb`
 First Create `.env` and add `PROCON_TOKEN`
 
-Completed:
-- Create board and dies
-- Solution
-
-
-Processing:
-- GUI game
-
-## To create a game run:
+To get problem into json file run `get_problem.py` the json will save in `question_store/{question_id}.json`
 ```bash
-python3 gen_data.py
+python get_problem.py --question_id {question_id}
 ```
-Before creating the table, remember to set the initialization parameters.
 
-## To check run:
+To plot the question matrix `plot_question.py` add param --question_id, and if --save_image are set `True`, image will save in `question_store/{question_id}.png`
 ```bash
-python3 solution_simulator.py
-```
-Before running, remember to name the folder correctly.
-
-```bash
-# Example 1:
-[[2 3 3 3 1 3]
- [3 3 2 3 3 1]
- [1 2 2 3 3 0]
- [3 0 3 0 0 0]
- [3 2 0 3 2 2]]
-> max number of solutions: 1
-----------------------------------------
-Step 1: 
-die: 7, direction: 3, position: (1, 5)
-[[2 3 3 3 1 3]
- [3 3 2 3 3 1]
- [1 2 2 3 3 0]
- [3 0 3 0 0 0]
- [3 2 0 3 2 2]]
-----------------------------------------
-Found solution after 1 steps!
+python plot_question.py --question_id {question_id} --save_image {True/False}
 ```

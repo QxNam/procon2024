@@ -1,0 +1,8 @@
+RubiksCubeGym
+rubiks-cube-reinforcement-learning
+venv
+.DS_Store
+__pycache__
+weights/*
+
+.env

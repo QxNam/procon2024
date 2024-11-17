@@ -1,5 +1,4 @@
 import numpy as np
-import json
 
 def create_die(n:int, type='I') -> np.ndarray:
     '''
@@ -12,15 +11,13 @@ def create_die(n:int, type='I') -> np.ndarray:
     Returns:
         list: A list of strings representing the die cells, where each cell is represented by a string of '0's and '1's
     '''
-    if n==1:
-        return np.ones(n, dtype=np.int8)
-    
     die = np.ones((n, n), dtype=np.int8)
     if type == 'II':
         die[1::2] = 0
     elif type == 'III':
         die[:,1::2] = 0
     return die
+
 def create() -> dict:
     '''
     Create a dictionary containing the cell data and save it as a JSON file

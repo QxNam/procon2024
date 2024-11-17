@@ -1,3 +1,6 @@
+import os, sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -28,8 +31,8 @@ goal = np.array([[0, 0, 0, 0, 0, 0],
                  [3, 3, 3, 3, 3, 3]])
 
 dies = [np.array([[1, 0], [0, 1]]), np.array([[1, 1], [1, 0]])]  # Example dies
-env = BoardTransformEnv(board, goal, dies)
 
+env = BoardTransformEnv(board, goal, dies)
 action_size = np.prod(env.action_space.nvec)
 print(board.size, action_size)  # Should print 24 192
 model = DQN(board.size, action_size)

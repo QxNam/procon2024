@@ -1,8 +1,10 @@
 RubiksCubeGym
 rubiks-cube-reinforcement-learning
+question_store
 venv
 .DS_Store
 __pycache__
 weights/*
 
 .env
+*.ipynb

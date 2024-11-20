@@ -1,5 +1,5 @@
-import os, sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# import os, sys
+# sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
 import torch
@@ -9,8 +9,9 @@ from envs.env_matplotlib import BoardTransformEnv
 from models.dqn import DQN
 from replay_buffer import ReplayBuffer, epsilon_greedy_policy
 import matplotlib.pyplot as plt
+from utils import load_data
 
-num_episodes = 100  # Tăng số lượng episode để dễ quan sát
+num_episodes = 10  # Tăng số lượng episode để dễ quan sát
 gamma = 0.99
 epsilon = 1.0
 epsilon_decay = 0.995
@@ -19,18 +20,23 @@ batch_size = 32
 learning_rate = 0.001
 target_update_frequency = 10
 
-# Initialize environment, model, optimizer, and replay buffer
-board = np.array([[2, 2, 0, 1, 0, 3],
-                  [2, 1, 3, 0, 3, 3],
-                  [0, 2, 2, 1, 0, 3],
-                  [3, 2, 2, 0, 3, 3]])
+# # Initialize environment, model, optimizer, and replay buffer
+# board = np.array([[2, 2, 0, 1, 0, 3],
+#                   [2, 1, 3, 0, 3, 3],
+#                   [0, 2, 2, 1, 0, 3],
+#                   [3, 2, 2, 0, 3, 3]])
 
-goal = np.array([[0, 0, 0, 0, 0, 0],
-                 [1, 1, 1, 2, 2, 2],
-                 [2, 2, 2, 2, 3, 3],
-                 [3, 3, 3, 3, 3, 3]])
+# goal = np.array([[0, 0, 0, 0, 0, 0],
+#                  [1, 1, 1, 2, 2, 2],
+#                  [2, 2, 2, 2, 3, 3],
+#                  [3, 3, 3, 3, 3, 3]])
 
-dies = [np.array([[1, 0], [0, 1]]), np.array([[1, 1], [1, 0]])]  # Example dies
+# dies = [np.array([[1, 0], [0, 1]]), np.array([[1, 1], [1, 0]])]  # Example dies
+
+data = load_data(66)
+board = data['board']
+goal = data['goal']
+dies = data['dies']
 
 env = BoardTransformEnv(board, goal, dies)
 action_size = np.prod(env.action_space.nvec)
@@ -105,3 +111,4 @@ for episode in range(num_episodes):
     plt.pause(0.001)  # Cập nhật hình ảnh sau mỗi episode
 
 env.close()  # Đóng cửa sổ khi kết thúc
+

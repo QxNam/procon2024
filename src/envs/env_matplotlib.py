@@ -42,7 +42,6 @@ class BoardTransformEnv(gym.Env):
         self.x = None
         self.y = None
         self.state = self.board.copy()
-        return self.state
     
     def step(self, action):
         # Decode the single integer action into multiple components
@@ -54,7 +53,7 @@ class BoardTransformEnv(gym.Env):
         die = self.dies[die_id]
         
         # Apply die cutting operation
-        self.state = apply_die_cutting(self.state, die, x, y, direction)
+        apply_die_cutting(self.state, die, x, y, direction)
         
         # Calculate reward based on similarity to goal
         reward = -np.sum(self.state != self.goal)  # Negative reward based on differences
@@ -62,47 +61,46 @@ class BoardTransformEnv(gym.Env):
         
         return self.state, reward, done, {}
     
-    # def render(self, mode='human'):
-    #     if self.im is None:
-    #         self.im = self.ax.imshow(self.state, cmap=self.cmap, norm=self.norm)
-    #         self.ax.set_title("Board State")
-    #         self.fig.colorbar(self.im, ax=self.ax, ticks=[0, 1, 2, 3], 
-    #                          boundaries=self.bounds)
-    #     else:
-    #         self.im.set_data(self.state)
-    #     # set title for visualization
-    #     self.ax.set_title(f"die id: {self.die_id}, ({self.x}, {self.y})")
-    #     self.fig.canvas.draw()  # Update the plot
-        
-    #     plt.pause(0.1)  # Cập nhật hình ảnh
-
     def render(self, mode='human'):
         if self.im is None:
-            # Display the current state
             self.im = self.ax.imshow(self.state, cmap=self.cmap, norm=self.norm)
-            # set title for visualization
-            self.ax.set_title(f"die id: {self.die_id}, ({self.x}, {self.y})")
-            self.fig.canvas.draw()  # Update the plot
+            self.ax.set_title("Board State")
             self.fig.colorbar(self.im, ax=self.ax, ticks=[0, 1, 2, 3], 
-                            boundaries=self.bounds)
-            
-            # Create an overlay for mismatched cells
-            mismatch = (self.state != self.goal)
-            # Use a colormap with a single color for mismatches, e.g., semi-transparent red
-            mismatch_cmap = mcolors.ListedColormap(['none', 'red'])
-            self.mismatch_overlay = self.ax.imshow(mismatch, cmap=mismatch_cmap, 
-                                                alpha=0.5, interpolation='none')
+                             boundaries=self.bounds)
         else:
-            # Update the board state
             self.im.set_data(self.state)
-            
-            # Update the mismatch overlay
-            mismatch = (self.state != self.goal)
-            self.mismatch_overlay.set_data(mismatch)
+        # set title for visualization
+        self.ax.set_title(f"die id: {self.die_id}, ({self.x}, {self.y})")
+        self.fig.canvas.draw()  # Update the plot
+        
+        plt.pause(0.1)  # Cập nhật hình ảnh
+        pass
 
-        
-        
-        plt.pause(0.001)  # Update the plot
+    # def render(self, mode='human'):
+    #     if self.im is None:
+    #         # Display the current state
+    #         self.im = self.ax.imshow(self.state, cmap=self.cmap, norm=self.norm)
+    #         # set title for visualization
+    #         self.ax.set_title(f"die id: {self.die_id}, ({self.x}, {self.y})")
+    #         self.fig.canvas.draw()  # Update the plot
+    #         self.fig.colorbar(self.im, ax=self.ax, ticks=[0, 1, 2, 3], 
+    #                         boundaries=self.bounds)
+            
+    #         # Create an overlay for mismatched cells
+    #         mismatch = (self.state != self.goal)
+    #         # Use a colormap with a single color for mismatches, e.g., semi-transparent red
+    #         mismatch_cmap = mcolors.ListedColormap(['none', 'red'])
+    #         self.mismatch_overlay = self.ax.imshow(mismatch, cmap=mismatch_cmap, 
+    #                                             alpha=0.5, interpolation='none')
+    #     else:
+    #         # Update the board state
+    #         self.im.set_data(self.state)
+            
+    #         # Update the mismatch overlay
+    #         mismatch = (self.state != self.goal)
+    #         self.mismatch_overlay.set_data(mismatch)
+
+    #     plt.pause(0.001)  # Update the plot
 
     def close(self):
         if self.fig:

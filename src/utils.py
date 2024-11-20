@@ -1,8 +1,8 @@
 import torch
 import random
-import imageio.v2 as imageio
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 
 def update_target_network(policy_net, target_net):
     target_net.load_state_dict(policy_net.state_dict())
@@ -45,3 +45,17 @@ def save_frame_to_video(writer, state, goal, episode, step):
     image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
     writer.append_data(image)
     plt.close(fig)
+
+def load_data(id):
+    with open(f"data/{id}.json", "r", encoding='utf-8') as f:
+        data = json.load(f)
+    return {
+        "board": np.array(data["board"]),
+        "goal": np.array(data["goal"]),
+        "dies": [np.array(die) for die in data["dies"]]
+    }
+
+if __name__ == "__main__":
+    data = load_data(66)
+    print(data)
+    

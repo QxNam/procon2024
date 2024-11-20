@@ -1,5 +1,7 @@
 import numpy as np
-loaded_data = np.load('envs/states/pattents.npz')
+import os
+PWD = os.path.dirname(os.path.realpath(__file__))
+loaded_data = np.load(f'{PWD}/states/pattents.npz')
 
 def _choose(id:int=1):
     return loaded_data['arr_{}'.format(id)]
@@ -28,7 +30,7 @@ def get_point(game: np.ndarray, die: np.ndarray, x: int, y: int) -> tuple:
 
     return x_start, y_start, x_end, y_end
 
-def lift_elements(A: np.ndarray, die: np.ndarray) -> np.ndarray:
+def lift_elements(A: np.ndarray, die: np.ndarray):
     '''
     Lift the elements of the die in the game
     
@@ -37,7 +39,7 @@ def lift_elements(A: np.ndarray, die: np.ndarray) -> np.ndarray:
         die (np.ndarray): the die
         
     Returns:
-        np.ndarray: the lifted elements
+        tuple: the lifted elements and the position of the die
     '''
     h, w = A.shape
     tmp_die = die[:h, :w]
@@ -46,20 +48,18 @@ def lift_elements(A: np.ndarray, die: np.ndarray) -> np.ndarray:
     res[pos_1] = A[pos_1]
     return res, pos_1
 
-def apply_die_cutting(game: np.ndarray, die: np.ndarray, x: int, y: int, d: int) -> np.ndarray:
+def apply_die_cutting(game: np.ndarray, pattent: np.ndarray, x: int, y: int, d: int):
     '''
     Cut the die in the game
 
     Args:
         game (np.ndarray): the game game
-        die (np.ndarray): the die
+        pattent (np.ndarray): the pattent
         x (int): the x coordinate
         y (int): the y coordinate
         d (int): the d (0-top, 1-bottom, 2-left, 3-right)
-
-    Returns:
-        np.ndarray: the cut die
     '''
+    die = pattent.copy()
     height, width = game.shape
     if x<0:
         die = die[:, -x:]
@@ -67,7 +67,7 @@ def apply_die_cutting(game: np.ndarray, die: np.ndarray, x: int, y: int, d: int)
         die = die[-y:, :]
 
     x1, y1, x2, y2 = get_point(game, die, x, y)
-    A = game[y1:y2, x1:x2]
+    A = game[y1:y2+1, x1:x2+1]
     
     L, P = lift_elements(A, die)
     P_ = (P[0] + y1, P[1] + x1)
@@ -76,21 +76,20 @@ def apply_die_cutting(game: np.ndarray, die: np.ndarray, x: int, y: int, d: int)
         for r in range(y1, y2):
             col1 = [game[r][i] for i in range(width) if game[r][i] != -1]
             col2 = [L[r-y1][i] for i in range(len(L[r-y1])) if L[r-y1][i] != -1]
-            if d == 3: # right
+            if d == 2: # left
                 col = np.concatenate((col1, col2))
                 game[r] = col
-            elif d == 2: # left
+            elif d == 3: # right
                 col = np.concatenate((col2, col1))
                 game[r] = col
     else:
         for c in range(x1, x2):
             row1 = [game[i][c] for i in range(height) if game[i][c] != -1]
-            row2 = [L[i][c-x1] for i in range(len(L)) if L[i][c-x1] != -1][::-1]
-            if d == 1: # bottom
+            row2 = [L[i][c-x1] for i in range(len(L)) if L[i][c-x1] != -1]
+            if d == 0: # top
                 row = np.concatenate((row1, row2))
                 game[:, c] = row
-            elif d == 0: # top
+            elif d == 1: # bottom
                 row = np.concatenate((row2, row1))
                 game[:, c] = row
-
-    return game
+            

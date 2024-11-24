@@ -28,7 +28,8 @@ target_update_frequency = 10
 
 # goal = np.array([[0, 0, 0, 0, 0, 0],
 #                  [1, 1, 1, 2, 2, 2],
-#                  [2, 2, 2, 2, 3, 3],
+#                  [2, 2, 2, 2, 3, 3]
+# ,
 #                  [3, 3, 3, 3, 3, 3]])
 
 # dies = [np.array([[1, 0], [0, 1]]), np.array([[1, 1], [1, 0]])]  # Example dies

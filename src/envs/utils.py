@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import ndarray
 import os
 PWD = os.path.dirname(os.path.realpath(__file__))
 loaded_data = np.load(f'{PWD}/states/pattents.npz')
@@ -9,7 +10,7 @@ def _choose(id:int=1):
 def get_dies():
     return [_choose(i) for i in range(24)]
 
-def get_point(game: np.ndarray, die: np.ndarray, x: int, y: int) -> tuple:
+def get_point(game: ndarray, die: ndarray, x: int, y: int) -> tuple:
     '''
     Get the point of the die in the game
     
@@ -30,7 +31,7 @@ def get_point(game: np.ndarray, die: np.ndarray, x: int, y: int) -> tuple:
 
     return x_start, y_start, x_end, y_end
 
-def lift_elements(A: np.ndarray, die: np.ndarray):
+def lift_elements(A: ndarray, die: ndarray):
     '''
     Lift the elements of the die in the game
     
@@ -48,7 +49,7 @@ def lift_elements(A: np.ndarray, die: np.ndarray):
     res[pos_1] = A[pos_1]
     return res, pos_1
 
-def apply_die_cutting(game: np.ndarray, pattent: np.ndarray, x: int, y: int, d: int):
+def apply_die_cutting(board: ndarray, pattent: ndarray, x: int, y: int, d: int)->ndarray:
     '''
     Cut the die in the game
 
@@ -60,6 +61,7 @@ def apply_die_cutting(game: np.ndarray, pattent: np.ndarray, x: int, y: int, d: 
         d (int): the d (0-top, 1-bottom, 2-left, 3-right)
     '''
     die = pattent.copy()
+    game = board.copy()
     height, width = game.shape
     if x<0:
         die = die[:, -x:]
@@ -92,4 +94,5 @@ def apply_die_cutting(game: np.ndarray, pattent: np.ndarray, x: int, y: int, d: 
             elif d == 1: # bottom
                 row = np.concatenate((row2, row1))
                 game[:, c] = row
+    return game
             

@@ -6,7 +6,6 @@ import torch.optim as optim
 from envs.env import BoardTransformEnv
 from models.dqn import DQN
 from replay_buffer import ReplayBuffer, epsilon_greedy_policy
-import pygame
 
 num_episodes = 100  # Tăng số lượng episode để dễ quan sát
 gamma = 0.99

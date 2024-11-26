@@ -1,12 +1,28 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 import os
+import json
+from time import time
 PWD = os.path.dirname(os.path.realpath(__file__))
 loaded_data = np.load(f'{PWD}/states/pattents.npz')
 
 def _choose(id:int=1):
+    '''
+    Parse die in numpy format
+    Args:
+        id (int): the id of the die
+    Returns:
+        np.ndarray: the die
+    '''
     return loaded_data['arr_{}'.format(id)]
 
 def load_dies():
+    '''
+    Load all dies default
+    Returns:
+        list: list of np.ndarray
+    '''
     return [_choose(i) for i in range(24)]
 
 def get_point(game: np.ndarray, die: np.ndarray, x: int, y: int) -> tuple:
@@ -48,17 +64,19 @@ def lift_elements(A: np.ndarray, die: np.ndarray):
     res[pos_1] = A[pos_1]
     return res, pos_1
 
-def apply_die_cutting(game: np.ndarray, pattent: np.ndarray, x: int, y: int, d: int):
+def apply_die_cutting(board: np.ndarray, pattent: np.ndarray, x: int, y: int, d: int):
     '''
     Cut the die in the game
-
     Args:
-        game (np.ndarray): the game game
+        board (np.ndarray): the board game
         pattent (np.ndarray): the pattent
         x (int): the x coordinate
         y (int): the y coordinate
         d (int): the d (0-top, 1-bottom, 2-left, 3-right)
+    Returns:
+        np.ndarray: the new board game
     '''
+    game = board.copy()
     die = pattent.copy()
     height, width = game.shape
     if x<0:
@@ -92,4 +110,71 @@ def apply_die_cutting(game: np.ndarray, pattent: np.ndarray, x: int, y: int, d: 
             elif d == 1: # bottom
                 row = np.concatenate((row2, row1))
                 game[:, c] = row
-            
+    return game
+
+def save_figure(id, state:np.ndarray, goal:np.ndarray, show=False):
+    '''Save figure at src/figures
+    Args:
+        id (int): the id of the figure
+        state (np.ndarray): the current state
+        goal (np.ndarray): the goal state
+        show (bool): show the figure
+    '''
+    check = state == goal
+    cmap = ListedColormap(['red', 'green'])
+    plt.imshow(check.astype(int), cmap=cmap, vmin=0, vmax=1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.savefig(f'{PWD}/figures/{id}.png', bbox_inches='tight')
+    if show:
+        plt.show()
+    plt.close()
+
+def estimate_time(func, **kwargs):
+    '''
+    Estimate the time of the function
+    Args:
+        func (function): the function to estimate the time of
+        **kwargs: the arguments for the function
+    Returns:
+        tuple: the time second (s) and the result of the function
+    '''
+    start = time()
+    res = func(**kwargs)
+    return time()-start, res
+    
+def load_data(id):
+    '''
+    Load the data from the json file
+    Args:
+        id (int): the id of the data
+    Returns:
+    dict: the data loaded from the json file
+    '''
+    with open(f'{PWD}/data/{id}.json', 'r') as f:
+        data = json.load(f)
+    data['board'] = np.array(data['board'])
+    data['goal'] = np.array(data['goal'])
+    dies = load_dies()
+    if len(data['dies']) > 0:
+        data['dies'] = dies + [np.array(i) for i in data['dies']]
+    else:
+        data['dies'] = dies
+    return data
+
+def crate_json_submit(id:int, results:list):
+    '''
+    Create the json file for submitting the answer
+    Args:
+        id (int): the id of the data
+        results (list): the results
+    '''
+    data = {
+        "question_id": id,
+        "answer_data": {
+            "n": len(results),
+            "ops": results
+        }
+    }
+    with open(f'{PWD}/solves/{id}.json', 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)

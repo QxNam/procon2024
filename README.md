@@ -1,5 +1,3 @@
 # Algorithms
 
-Thư mục `algorithms` chứa các file thuật toán.
-
-file `search.py` để thực hiện thuật toán.
+- 0.2s cho ID 72

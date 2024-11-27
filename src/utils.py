@@ -162,7 +162,7 @@ def load_data(id):
         data['dies'] = dies
     return data
 
-def crate_json_submit(id:int, results:list):
+def create_json_submit(id:int, results:list):
     '''
     Create the json file for submitting the answer
     Args:

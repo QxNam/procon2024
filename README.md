@@ -45,28 +45,28 @@ Ví dụ:
     }
 }
 ```
+
+Tham khảo ma trận 256x256: https://drive.google.com/file/d/1DQiXZ4Y9KZFBqtFPfbpkCzalp699YAzl/view?usp=sharing
     
 ## 2. Biên dịch và chạy file C++
 
 ### **Cách 1: Chạy `solution_BFS.cpp`**
 
-1. Mở terminal hoặc command prompt tại thư mục dự án.
-2. Biên dịch file C++:
-    ```bash
-    g++ solution_BFS.cpp -o solution_BFS
-3. Chạy chương trình:
-    ```bash
-    ./solution_BFS
+```bash
+g++ -o solution_BFS solution_BFS.cpp && ./solution_BFS
+```
 
 ### **Cách 2: Chạy `solution_BFS_binary_lifting.cpp`**
 
-1. Mở terminal hoặc command prompt tại thư mục dự án.
-2. Biên dịch file C++:
-    ```bash
-    g++ solution_BFS_binary_lifting.cpp -o solution_BFS_binary_lifting
-3. Chạy chương trình:
-    ```bash
-    ./solution_BFS_binary_lifting
+```bash
+g++ -o solution_BFS_binary_lifting solution_BFS_binary_lifting.cpp && ./solution_BFS_binary_lifting
+```
+
+### **Cách 3: Chạy `solution_beam_search.cpp`**
+
+```bash
+g++ -o solution_beam_search solution_beam_search.cpp && ./solution_beam_search
+```
 
 ## 3. Kết quả 
 

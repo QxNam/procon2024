@@ -13,10 +13,10 @@ def convert_to_txt(data):
     result.append(f"{board['width']} {board['height']}")
     start = [''.join(map(str, row)) if isinstance(row, list) else row for row in board['start']]
     result.extend(start)
-    result.extend('')
+    result.extend('\n')
     goal = [''.join(map(str, row)) if isinstance(row, list) else row for row in board['goal']]
     result.extend(goal)
-    result.extend('')
+    result.extend('\n')
 
     # Phần GENERAL
     general = data['general']
@@ -25,6 +25,7 @@ def convert_to_txt(data):
         result.append(f"{pattern['p']} {pattern['width']} {pattern['height']}")
         cells = [''.join(map(str, row)) if isinstance(row, list) else row for row in pattern['cells']]
         result.extend(cells)
+        result.extend('\n')
     return "\n".join(result)
 
 # Chuyển đổi và lưu vào file txt

@@ -439,7 +439,7 @@ int main()
     double duration2 = double(end2 - start2) / CLOCKS_PER_SEC;
     cerr << "Time find solution: " << duration2 << " seconds" << endl;
 
-    system("python visualize.py");
+    // system("python visualize.py");
 
     return 0;
 }

@@ -8,6 +8,7 @@ using namespace std;
 #define RIGHT 3
 
 ll width, height, n, Fixed[257][257];
+ll pre_num_matching, best_num_matching=0, check=1;
 
 struct die_pattern
 {
@@ -301,39 +302,39 @@ ll calculate_number_identical_squares(const board &start, const board &goal)
 vector<ll> take_index_k_largest_elements(const vector<ll> num_candidates_matching, ll k) 
 {
     ll n=num_candidates_matching.size();
-    vector<bool> used(n);
+    vector<bool> used(n, false);
     vector<ll> answers;
     for (ll i=0; i<min(n, k); i++) 
     {
-        ll id_min=-1;
+        ll id_max=-1;
         for (ll i=0; i<num_candidates_matching.size(); i++) if (used[i]==false)
-            if (id_min==-1 || num_candidates_matching[i]<num_candidates_matching[id_min])
-                id_min=i;
-        answers.push_back(id_min);
-        used[id_min]=true;
+            if (id_max==-1 || num_candidates_matching[i]>num_candidates_matching[id_max])
+                id_max=i;
+        answers.push_back(id_max);
+        used[id_max]=true;
     }
     return answers;
 }
 
 // Hàm tạo ra ứng cử viên tiếp theo 
-vector<vector<operation>> create_next_generations(vector<vector<operation>> states, vector<die_pattern> dies, ll max_candidates=5)
+vector<vector<operation>> create_next_generations(vector<vector<operation>> states, vector<die_pattern> dies, ll max_candidates=5, double grow_rate=0.1)
 {
     vector<vector<operation>> candidates, best_candidates;
     vector<ll> num_matching_matrix;
     if (states.size()==0) return best_candidates;
 
-    ll total_operations = states.size() * dies.size() * height * width * 4;
+    ll total_operations = states.size() * dies.size() * height * 2 * width * 2 * 4;
     ll processed_operations = 0;
     auto start_time = std::chrono::high_resolution_clock::now();
 
     for (vector<operation> state: states)
         for (ll id=0; id<dies.size(); id++)
-            for (ll i=0, die_height=dies[id].height; i<height-die_height; i++)
-                for (ll j=0, die_width=dies[id].width; j<width-die_width; j++)
+            for (ll i=-height, die_height=dies[id].height; i<height; i++)
+                for (ll j=-width, die_width=dies[id].width; j<width; j++)
                     for (ll direction=0; direction<4; direction++) 
                     {
                         processed_operations++;
-                        if (processed_operations % 1000 == 0) {
+                        if (processed_operations % 10000 == 0) {
                             auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
                             auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count();
                             double progress = (double)processed_operations / total_operations * 100;
@@ -350,18 +351,25 @@ vector<vector<operation>> create_next_generations(vector<vector<operation>> stat
                     }
     cerr<<endl;
     
-    vector<ll> index_best_candidates=take_index_k_largest_elements(num_matching_matrix, max_candidates=5);
+    best_num_matching=num_matching_matrix[0];
+    if (1.0*pre_num_matching/best_num_matching<grow_rate) return states;
+    vector<ll> index_best_candidates=take_index_k_largest_elements(num_matching_matrix, 5);
     for (ll id: index_best_candidates) best_candidates.push_back(candidates[id]);
     return best_candidates;
 }
 
 // Hàm áp dụng thuật toán tìm kiếm bằng beam search 
-vector<operation> apply_beam_search(ll max_steps=1)
+vector<operation> apply_beam_search(ll max_steps=1, double grow_rate=0.1)
 {
     vector<operation> init_state;
     vector<vector<operation>> candides;
     candides.push_back(init_state);
-    for (ll i=0; i<max_steps; i++) candides=create_next_generations(candides, dies, 5);
+    pre_num_matching=calculate_number_identical_squares(start, goal);
+    for (ll i=0; i<max_steps; i++) 
+    {
+        candides=create_next_generations(candides, dies, 5, grow_rate);
+        if (1.0*pre_num_matching/best_num_matching<grow_rate) break;
+    }
     return candides[0];
 }
 
@@ -401,8 +409,8 @@ void append_answer_to_all_solution(const vector<operation> &answer) {
         auto [p, x, y, s] = answer[i];
         ss << "      {\n";
         ss << "        \"p\":" << p << ",\n";
-        ss << "        \"x\":" << x << ",\n";
-        ss << "        \"y\":" << y << ",\n";
+        ss << "        \"x\":" << y << ",\n";
+        ss << "        \"y\":" << x << ",\n";
         ss << "        \"s\":" << s << "\n";
         ss << "      }";
         if (i != answer.size() - 1) {
@@ -450,8 +458,8 @@ void print_answer(const vector<operation> &answer)
         auto [p, x, y, s] = answer[i];
         outFile << "    {" << endl;
         outFile << "      \"p\":" << p << "," << endl;
-        outFile << "      \"x\":" << x << "," << endl;
-        outFile << "      \"y\":" << y << "," << endl;
+        outFile << "      \"x\":" << y << "," << endl;
+        outFile << "      \"y\":" << x << "," << endl;
         outFile << "      \"s\":" << s << endl;
         outFile << "    }";
 
@@ -478,8 +486,7 @@ void solve() {
     print_answer(answer);
     board tmp=start;
     for (operation opt: answer) tmp=tmp.apply_die(opt);
-    cout<<calculate_number_identical_squares(start, goal)<<endl;
-    cout<<calculate_number_identical_squares(tmp, goal)<<endl;
+    cerr<<calculate_number_identical_squares(tmp, goal)<<"/"<<width*height<<endl;
 }
 
 int main()

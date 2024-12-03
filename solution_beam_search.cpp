@@ -367,7 +367,7 @@ vector<operation> apply_beam_search(ll max_steps=1, double grow_rate=0.1)
     pre_num_matching=calculate_number_identical_squares(start, goal);
     for (ll i=0; i<max_steps; i++) 
     {
-        candides=create_next_generations(candides, dies, 5, grow_rate);
+        candides=create_next_generations(candides, dies, 1, grow_rate);
         if (1.0*pre_num_matching/best_num_matching<grow_rate) break;
     }
     return candides[0];

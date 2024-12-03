@@ -225,7 +225,7 @@ pair<ll, ll> bfs(ll curx, ll cury)
             {
                 if (start[newx][newy]==goal[curx][cury]) {
                     ll dx=abs(newx-curx), dy=abs(newy-cury);
-                    if (__builtin_popcount(dx)+__builtin_popcount(dy)<min_bit) 
+                    if (__builtin_popcount(dx)+__builtin_popcount(dy)<=min_bit) 
                     {
                         min_bit=__builtin_popcount(dx)+__builtin_popcount(dy);
                         ans={newx, newy};

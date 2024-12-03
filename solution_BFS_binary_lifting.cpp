@@ -213,6 +213,8 @@ pair<ll, ll> bfs(ll curx, ll cury)
     queue<pair<ll, ll>> q;
     q.push({curx, cury});
     dist[curx][cury]=0;
+    pair<ll, ll> ans={curx, cury};
+    ll min_bit=20;
     while (!q.empty())
     {
         auto [x, y]=q.front(); q.pop();
@@ -221,14 +223,20 @@ pair<ll, ll> bfs(ll curx, ll cury)
             ll newx=x+dx[i], newy=y+dy[i];
             if (0<=newx && newx<height && 0<=newy && newy<width && dist[newx][newy]==-1 && Fixed[newx][newy]==0)
             {
-                if (start[newx][newy]==goal[curx][cury]) 
-                    return {newx, newy};
+                if (start[newx][newy]==goal[curx][cury]) {
+                    ll dx=abs(newx-curx), dy=abs(newy-cury);
+                    if (__builtin_popcount(dx)+__builtin_popcount(dy)<min_bit) 
+                    {
+                        min_bit=__builtin_popcount(dx)+__builtin_popcount(dy);
+                        ans={newx, newy};
+                    }
+                }
                 q.push({newx, newy});
                 dist[newx][newy]=dist[x][y]+1;
             } 
         }
     }
-    return {-1, -1};
+    return ans;
 }
 
 vector<tuple<ll, ll, ll, ll>> apply_binary_lifting(vector<string> &start, bool is_debug=false)

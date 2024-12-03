@@ -9,6 +9,7 @@ using namespace std;
 
 ll width, height, n, Fixed[257][257];
 ll pre_num_matching, best_num_matching=0, check=1;
+ll dx[]={0, 0, 1, -1}, dy[]={1, -1, 0, 0}, visited[257][257];
 
 struct die_pattern
 {
@@ -259,34 +260,6 @@ void read_input()
     }
 }
 
-//Hàm tìm vị trí ô đúng gần nhất với ô (curx, cury)
-pair<ll, ll> bfs(const board &start, const board &goal, ll curx, ll cury)
-{
-    auto [heigt, width, start_matrix]=start;
-    auto [_, __, goal_matrix]=goal;
-    if (start_matrix[curx][cury]==goal_matrix[curx][cury]) return {curx, cury};
-    ll dx[]={0, 0, -1, 1};
-    ll dy[]={1, -1, 0, 0};
-
-    queue<pair<ll, ll>> q;
-    q.push({curx, cury});
-    while (!q.empty())
-    {
-        auto [x, y]=q.front(); q.pop();
-        for (ll i=0; i<4; i++) 
-        {
-            ll newx=x+dx[i], newy=y+dy[i];
-            if (0<=newx && newx<height && 0<=newy && newy<width && Fixed[newx][newy]==0)
-            {
-                if (start_matrix[newx][newy]==goal_matrix[curx][cury]) 
-                    return {newx, newy};
-                q.push({newx, newy});
-            } 
-        }
-    }
-    return {-1, -1};
-}
-
 // Hàm tính toán số lượng ô vuông ở vị trí giống nhau của ma trận start so với ma trận goal 
 ll calculate_number_identical_squares(const board &start, const board &goal)
 {
@@ -317,7 +290,7 @@ vector<ll> take_index_k_largest_elements(const vector<ll> num_candidates_matchin
 }
 
 // Hàm tạo ra ứng cử viên tiếp theo 
-vector<vector<operation>> create_next_generations(vector<vector<operation>> states, vector<die_pattern> dies, ll max_candidates=5, double grow_rate=0.1)
+vector<vector<operation>> create_next_generations(vector<vector<operation>> states, vector<die_pattern> dies, ll max_candidates=1, double grow_rate=0.1)
 {
     vector<vector<operation>> candidates, best_candidates;
     vector<ll> num_matching_matrix;
@@ -328,7 +301,10 @@ vector<vector<operation>> create_next_generations(vector<vector<operation>> stat
     auto start_time = std::chrono::high_resolution_clock::now();
 
     for (vector<operation> state: states)
-        for (ll id=0; id<dies.size(); id++)
+    {
+        board cur_board=start;
+        for (operation opt: state) cur_board=cur_board.apply_die(opt);
+        for (ll id=0; id<dies.size(); id++) if (dies[id].height<=height)
             for (ll i=-height, die_height=dies[id].height; i<height; i++)
                 for (ll j=-width, die_width=dies[id].width; j<width; j++)
                     for (ll direction=0; direction<4; direction++) 
@@ -340,26 +316,26 @@ vector<vector<operation>> create_next_generations(vector<vector<operation>> stat
                             double progress = (double)processed_operations / total_operations * 100;
                             cerr << "\rProcessing: " << std::setw(3) << std::setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s";
                         }
-
-                        board new_board=start;
-                        for (operation opt: state) new_board=new_board.apply_die(opt);
-                        new_board=new_board.apply_die(operation(id, i, j, direction));
+                        
+                        board new_board=cur_board.apply_die(operation(id, i, j, direction));
                         vector<operation> new_state=state;
                         new_state.push_back(operation(id, i, j, direction));
                         candidates.push_back(new_state);
                         num_matching_matrix.push_back(calculate_number_identical_squares(new_board, goal));
                     }
+    }
     cerr<<endl;
     
     best_num_matching=num_matching_matrix[0];
     if (1.0*pre_num_matching/best_num_matching<grow_rate) return states;
     vector<ll> index_best_candidates=take_index_k_largest_elements(num_matching_matrix, 5);
     for (ll id: index_best_candidates) best_candidates.push_back(candidates[id]);
+    cerr<<num_matching_matrix[index_best_candidates[0]]<<"/"<<height*width<<endl;
     return best_candidates;
 }
 
 // Hàm áp dụng thuật toán tìm kiếm bằng beam search 
-vector<operation> apply_beam_search(ll max_steps=1, double grow_rate=0.1)
+vector<operation> apply_beam_search(ll max_steps=1, ll max_candidates=1, double grow_rate=0.1)
 {
     vector<operation> init_state;
     vector<vector<operation>> candides;
@@ -367,10 +343,118 @@ vector<operation> apply_beam_search(ll max_steps=1, double grow_rate=0.1)
     pre_num_matching=calculate_number_identical_squares(start, goal);
     for (ll i=0; i<max_steps; i++) 
     {
-        candides=create_next_generations(candides, dies, 1, grow_rate);
-        if (1.0*pre_num_matching/best_num_matching<grow_rate) break;
+        cerr<<"Generation "<<i+1<<endl;
+        candides=create_next_generations(candides, dies, max_candidates, grow_rate);
+        if (1.0-1.0*pre_num_matching/best_num_matching<grow_rate) break;
     }
     return candides[0];
+}
+
+pair<ll, ll> bfs(const board &start, const board &goal, ll curx, ll cury)
+{
+    if (start.matrix[curx][cury]==goal.matrix[curx][cury]) return {curx, cury};
+
+    for (ll i=0; i<height; i++)
+        for (ll j=0; j<width; j++)
+            visited[i][j]=0;
+
+    queue<pair<ll, ll>> q;
+    q.push({curx, cury});
+    visited[curx][cury]=1;
+    pair<ll, ll> ans={curx, cury};
+    ll min_bit=20;
+    while (!q.empty())
+    {
+        auto [x, y]=q.front(); q.pop();
+        for (ll i=0; i<4; i++) 
+        {
+            ll newx=x+dx[i], newy=y+dy[i];
+            if (0<=newx && newx<height && 0<=newy && newy<width && Fixed[newx][newy]==0 && visited[newx][newy]==0)
+            {
+                if (start.matrix[newx][newy]==goal.matrix[curx][cury]) {
+                    ll dx=abs(newx-curx), dy=abs(newy-cury);
+                    if (__builtin_popcount(dx)+__builtin_popcount(dy)<=min_bit) 
+                    {
+                        min_bit=__builtin_popcount(dx)+__builtin_popcount(dy);
+                        ans={newx, newy};
+                    }
+                }
+                visited[newx][newy]=1;
+                q.push({newx, newy});
+            } 
+        }
+    }
+    return ans;
+}
+
+vector<operation> apply_binary_lifting(board cur_board)
+{
+    vector<operation> answer;
+    ll total_cells = height * width;
+    ll progress_threshold = 5; // Ngưỡng hiển thị tiến trình (5%)
+    ll next_report = progress_threshold * total_cells / 100; 
+    auto start_time = std::chrono::high_resolution_clock::now();
+    ll processed_cells = 0; 
+
+    for (ll i=0; i<height; i++)
+    {
+        for (ll j=0; j<width; j++) 
+        {
+            auto [x, y]=bfs(cur_board, goal, i, j);
+            while (y<j) 
+            {
+                ll d=j-y;
+                for (ll k=8; k>=0; k--) if (d&(1LL<<k)) 
+                {
+                    cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x, y+1, RIGHT));
+                    answer.push_back(operation((k==0?0:3*k-2), x, y+1, RIGHT));
+                    y+=(1LL<<k);
+                }
+            }
+            while (y>j)
+            {
+                ll d=y-j;
+                for (ll k=8; k>=0; k--) if (d&(1LL<<k)) 
+                {
+                    cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x, y-(1LL<<k), LEFT));
+                    answer.push_back(operation((k==0?0:3*k-2), x, y-(1LL<<k), LEFT));
+                    y-=(1LL<<k);
+                }
+            }
+            while (x<i)
+            {
+                ll d=i-x;
+                for (ll k=8; k>=0; k--) if (d&(1LL<<k)) 
+                {
+                    cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x+1, y, BOTTOM));
+                    answer.push_back(operation((k==0?0:3*k-2), x+1, y, BOTTOM));
+                    x+=(1LL<<k);
+                }
+            }
+            while (x>i) 
+            {
+                ll d=x-i;
+                for (ll k=8; k>=0; k--) if (d&(1LL<<k))
+                {
+                    cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x-(1LL<<k), y, TOP));
+                    answer.push_back(operation((k==0?0:3*k-2), x-(1LL<<k), y, TOP));
+                    x-=(1LL<<k);
+                }
+            }
+            Fixed[i][j]=1;
+
+            processed_cells++;
+            if (processed_cells >= next_report) 
+            {
+                auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
+                auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count();
+                double progress = (double)processed_cells / total_cells * 100;
+                cerr << "\rProcessing: " << std::setw(3) << std::setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s" << flush;
+            }
+        }
+    }
+    cerr<<endl;
+    return answer;
 }
 
 // Hàm lưu đáp án hiện tại vào cuối all_solution.json 
@@ -482,11 +566,12 @@ void print_answer(const vector<operation> &answer)
 void solve() {
     init_die();
     read_input();
-    vector<operation> answer=apply_beam_search(2);
-    print_answer(answer);
-    board tmp=start;
-    for (operation opt: answer) tmp=tmp.apply_die(opt);
-    cerr<<calculate_number_identical_squares(tmp, goal)<<"/"<<width*height<<endl;
+    cerr<<calculate_number_identical_squares(start, goal)<<"/"<<width*height<<endl;
+    vector<operation> answer1=apply_beam_search(2, 5, 0.1);
+    for (operation opt: answer1) start=start.apply_die(opt);
+    vector<operation> answer2=apply_binary_lifting(start);
+    for (operation opt: answer2) answer1.push_back(opt);
+    print_answer(answer1);
 }
 
 int main()

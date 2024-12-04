@@ -567,7 +567,7 @@ void solve() {
     init_die();
     read_input();
     cerr<<calculate_number_identical_squares(start, goal)<<"/"<<width*height<<endl;
-    vector<operation> answer1=apply_beam_search(2, 5, 0.1);
+    vector<operation> answer1=apply_beam_search(2, 1, 0.1);
     for (operation opt: answer1) start=start.apply_die(opt);
     vector<operation> answer2=apply_binary_lifting(start);
     for (operation opt: answer2) answer1.push_back(opt);

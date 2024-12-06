@@ -570,13 +570,13 @@ int main()
     double duration2 = double(end2 - start2) / CLOCKS_PER_SEC;
     cerr << "Time find solution: " << duration2 << " seconds" << endl;
 
-    clock_t start3 = clock();
-    freopen("input_col.txt", "r", stdin);
-    freopen("output_col.txt", "w", stdout);
-    solve(false);
-    clock_t end3 = clock();
-    double duration3 = double(end3 - start3) / CLOCKS_PER_SEC;
-    cerr << "Time find solution: " << duration3 << " seconds" << endl;
+    // clock_t start3 = clock();
+    // freopen("input_col.txt", "r", stdin);
+    // freopen("output_col.txt", "w", stdout);
+    // solve(true);
+    // clock_t end3 = clock();
+    // double duration3 = double(end3 - start3) / CLOCKS_PER_SEC;
+    // cerr << "Time find solution: " << duration3 << " seconds" << endl;
 
 
     // system("python visualize.py");

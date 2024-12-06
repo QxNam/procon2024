@@ -280,6 +280,14 @@ void read_input()
     }
 }
 
+ll loss(ll curx, ll cury, ll newx, ll newy, ll len)
+{
+    ll dx=abs(curx-newx);
+    ll dy=abs(cury-newy);
+    ll L=__builtin_popcount(dy)+len*__builtin_popcount(dx)*len; 
+    return L;
+}
+
 // Hàm tính toán số lượng ô vuông ở vị trí giống nhau của ma trận start so với ma trận goal 
 ll calculate_number_identical_squares(const board &start, const board &goal)
 {
@@ -295,28 +303,32 @@ array<ll, 3> z_function(const board &cur_board, const board &goal, ll curx, ll c
     string s;
     for (ll j=cury; j<width; j++) s.push_back(goal.matrix[curx][j]);
     s.push_back('$');
-    ll m=s.size(), mx=-1;
+    ll m=s.size(), min_step=1e18, len=1;
     pair<ll, ll> ans={-1, -1};
 
     string x=s;
     for (ll j=cury; j<width; j++) x.push_back(cur_board.matrix[curx][j]);
     Z_function z1(x);  
-    for (ll j=m; j<x.size(); j++) if (z1.z[j]>mx) {
-        mx=z1.z[j];
-        ans={curx, cury+j-m};
-    }
+    for (ll j=m; j<x.size(); j++) 
+        if (z1.z[j]>0 && loss(curx, cury, curx, cury+j-m, z1.z[j])<min_step) {
+            min_step=loss(curx, cury, curx, cury+j-m, z1.z[j]);
+            ans={curx, cury+j-m};
+            len=z1.z[j];
+        }
 
     for (ll i=curx+1; i<height; i++)
     {
         string x=s;
         for (ll j=0; j<width; j++) x.push_back(cur_board.matrix[i][j]);
         Z_function z2(x);                        
-        for (ll j=m; j<x.size(); j++) if (z2.z[j]>mx) { 
-            mx=z2.z[j];
-            ans={i, j-m};
-        }
+        for (ll j=m; j<x.size(); j++) 
+            if (z2.z[j]>0 && loss(curx, cury, i, j-m, z2.z[j])<min_step) {
+                min_step=loss(curx, cury, i, j-m, z2.z[j]);
+                ans={i, j-m};
+                len=z2.z[j];
+            }
     } 
-    return {ans.first, ans.second, mx};
+    return {ans.first, ans.second, len};
 }
 
 vector<operation> apply_z_funtion(board cur_board)
@@ -328,12 +340,15 @@ vector<operation> apply_z_funtion(board cur_board)
     auto start_time = std::chrono::high_resolution_clock::now();
     ll processed_cells = 0; 
 
+    map<ll, ll> cnt;
+
     for (ll i=0; i<height; i++)
     {
         for (ll j=0; j<width; j++) 
         {
             if (cur_board.matrix[i][j]==goal.matrix[i][j]) continue;
-            auto [x, y, len]=z_function(cur_board, goal, i, j);                                       
+            auto [x, y, len]=z_function(cur_board, goal, i, j);  
+            ++cnt[len];    
             while (y<j) 
             {
                 ll d=j-y;
@@ -384,6 +399,7 @@ vector<operation> apply_z_funtion(board cur_board)
         }
     }
     cerr<<endl;
+    for (auto [x, y]: cnt) cout<<x<<" "<<y<<endl;
     return answer;
 }
 

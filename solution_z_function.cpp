@@ -6,7 +6,7 @@ using namespace std;
 #define LEFT 2 
 #define RIGHT 3
 
-ll width, height, n;
+ll width, height, n, best_answer=1e18;
 
 struct die_pattern
 {
@@ -285,7 +285,7 @@ ll loss(ll curx, ll cury, ll newx, ll newy, ll len)
     ll dx=abs(curx-newx);
     ll dy=abs(cury-newy);
     ll L=__builtin_popcount(dy)+len*__builtin_popcount(dx)*len; 
-    return L;
+    return L/len;
 }
 
 // Hàm tính toán số lượng ô vuông ở vị trí giống nhau của ma trận start so với ma trận goal 
@@ -346,6 +346,15 @@ vector<operation> apply_z_funtion(board cur_board)
     {
         for (ll j=0; j<width; j++) 
         {
+            processed_cells++;
+            if (processed_cells >= next_report) 
+            {
+                auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
+                auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count();
+                double progress = (double)processed_cells / total_cells * 100;
+                cerr << "\rProcessing: " << std::setw(3) << std::setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s" << flush;
+            }
+            
             if (cur_board.matrix[i][j]==goal.matrix[i][j]) continue;
             auto [x, y, len]=z_function(cur_board, goal, i, j);  
             ++cntlen[len];    
@@ -394,15 +403,6 @@ vector<operation> apply_z_funtion(board cur_board)
                     // cur_board.print();
                 }
             }
-
-            processed_cells++;
-            if (processed_cells >= next_report) 
-            {
-                auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
-                auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count();
-                double progress = (double)processed_cells / total_cells * 100;
-                cerr << "\rProcessing: " << std::setw(3) << std::setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s" << flush;
-            }
         }
     }
     cerr<<endl;
@@ -412,7 +412,7 @@ vector<operation> apply_z_funtion(board cur_board)
 }
 
 // Hàm lưu đáp án hiện tại vào cuối all_solution.json 
-void append_answer_to_all_solution(const vector<operation> &answer) {
+void append_answer_to_all_solution(const vector<operation> &answer, bool is_row=true) {
     // Đọc nội dung của file all_solution.json
     ifstream inFile("all_solution.json");
     string content;
@@ -445,12 +445,24 @@ void append_answer_to_all_solution(const vector<operation> &answer) {
     ss << "    \"ops\":[\n";
     for (size_t i = 0; i < answer.size(); ++i) {
         auto [p, x, y, s] = answer[i];
-        ss << "      {\n";
-        ss << "        \"p\":" << p << ",\n";
-        ss << "        \"x\":" << y << ",\n";
-        ss << "        \"y\":" << x << ",\n";
-        ss << "        \"s\":" << s << "\n";
-        ss << "      }";
+        if (is_row==1)
+        {
+            ss << "      {\n";
+            ss << "        \"p\":" << p << ",\n";
+            ss << "        \"x\":" << y << ",\n";
+            ss << "        \"y\":" << x << ",\n";
+            ss << "        \"s\":" << s << "\n";
+            ss << "      }";
+        }
+        else 
+        {
+            ss << "      {\n";
+            ss << "        \"p\":" << p << ",\n";
+            ss << "        \"y\":" << x << ",\n";
+            ss << "        \"x\":" << y << ",\n";
+            ss << "        \"s\":" << s << "\n";
+            ss << "      }";
+        }
         if (i != answer.size() - 1) {
             ss << ",";
         }
@@ -475,7 +487,7 @@ void append_answer_to_all_solution(const vector<operation> &answer) {
 }
 
 // Hàm in JSON từ vector<operation>
-void print_answer(const vector<operation> &answer)
+void print_answer(const vector<operation> &answer, bool is_row=true)
 {
     // Mở file để ghi
     ofstream outFile("output.json");
@@ -494,17 +506,28 @@ void print_answer(const vector<operation> &answer)
     for (size_t i = 0; i < answer.size(); ++i)
     {
         auto [p, x, y, s] = answer[i];
-        outFile << "    {" << endl;
-        outFile << "      \"p\":" << p << "," << endl;
-        outFile << "      \"x\":" << y << "," << endl;
-        outFile << "      \"y\":" << x << "," << endl;
-        outFile << "      \"s\":" << s << endl;
-        outFile << "    }";
-
-        // Thêm dấu phẩy trừ phần tử cuối cùng
-        if (i != answer.size() - 1)
+        if (is_row==1)
+        {
+            outFile << "      {\n";
+            outFile << "        \"p\":" << p << ",\n";
+            outFile << "        \"x\":" << y << ",\n";
+            outFile << "        \"y\":" << x << ",\n";
+            outFile << "        \"s\":" << s << "\n";
+            outFile << "      }";
+        }
+        else 
+        {
+            outFile << "      {\n";
+            outFile << "        \"p\":" << p << ",\n";
+            outFile << "        \"y\":" << x << ",\n";
+            outFile << "        \"x\":" << y << ",\n";
+            outFile << "        \"s\":" << s << "\n";
+            outFile << "      }";
+        }
+        if (i != answer.size() - 1) {
             outFile << ",";
-        outFile << endl;
+        }
+        outFile << "\n";
     }
 
     // Kết thúc chuỗi JSON
@@ -517,15 +540,18 @@ void print_answer(const vector<operation> &answer)
     // append_answer_to_all_solution(answer);
 }
 
-void solve() {
+void solve(bool is_row=true) {
     init_die();
     read_input();
     cerr<<calculate_number_identical_squares(start, goal)<<"/"<<width*height<<endl;
     vector<operation> answer=apply_z_funtion(start);
-    print_answer(answer);
     for (operation opt: answer) start=start.apply_die(opt);
     start.print();
     cerr<<calculate_number_identical_squares(start, goal)<<"/"<<width*height<<endl;
+    if (answer.size()<best_answer) {
+        best_answer=answer.size();
+        print_answer(answer, is_row);
+    }
 }
 
 int main()
@@ -535,18 +561,23 @@ int main()
     clock_t end1 = clock();
     double duration1 = double(end1 - start1) / CLOCKS_PER_SEC;
     cerr << "Time convert txt: " << duration1 << " seconds" << endl;
-    
-    ios_base::sync_with_stdio(false); cin.tie(NULL);
-    #ifndef ONLINE_JUDGE
-    freopen("input.txt", "r", stdin);
-    freopen("output.txt", "w", stdout);
-    #endif
 
     clock_t start2 = clock();
-    solve();
+    freopen("input_row.txt", "r", stdin);
+    freopen("output_row.txt", "w", stdout);
+    solve(true);
     clock_t end2 = clock();
     double duration2 = double(end2 - start2) / CLOCKS_PER_SEC;
     cerr << "Time find solution: " << duration2 << " seconds" << endl;
+
+    clock_t start3 = clock();
+    freopen("input_col.txt", "r", stdin);
+    freopen("output_col.txt", "w", stdout);
+    solve(false);
+    clock_t end3 = clock();
+    double duration3 = double(end3 - start3) / CLOCKS_PER_SEC;
+    cerr << "Time find solution: " << duration3 << " seconds" << endl;
+
 
     // system("python visualize.py");
 

@@ -181,5 +181,5 @@ pyrightconfig.json
 *.ipynb
 *.exe
 *.json
-question_store/*
-test_problem/*
+!test_problem/*.json
+test_problem/*.png

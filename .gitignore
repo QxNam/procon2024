@@ -182,4 +182,4 @@ pyrightconfig.json
 *.exe
 *.json
 question_store/*
-test_problem
+test_problem/*

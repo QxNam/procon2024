@@ -1,2 +1,6 @@
 *.exe
 .vscode
+*.json
+*.txt
+*ipynb
+test.*

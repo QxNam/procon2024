@@ -68,6 +68,12 @@ g++ -o solution_BFS_binary_lifting solution_BFS_binary_lifting.cpp && ./solution
 g++ -o solution_beam_search solution_beam_search.cpp && ./solution_beam_search
 ```
 
+### **Cách 4: Chạy `solution_z_function.cpp`**
+
+```bash
+g++ -std=c++20 -o solution_z_function solution_z_function.cpp; if ($?) { ./solution_z_function --id }
+```
+
 ## 3. Kết quả 
 
 Sau khi chạy chương trình, các bước di chuyển sẽ được xuất ra file output.json.

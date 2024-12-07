@@ -539,9 +539,17 @@ void solve() {
     // cerr<<calculate_number_identical_squares(start, goal)<<"/"<<width*height<<endl;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc != 2) {
+        std::cerr << "Sử dụng: " << argv[0] << " <id>" << std::endl;
+        return 1; // Thoát với mã lỗi
+    }
+
+    string id = argv[1];
+    string command_get = "python ./api_request/get_test_quest.py --id " + id;
     clock_t start1 = clock();
+    system(command_get.c_str());
     system("python convert_txt.py");
     clock_t end1 = clock();
     double duration1 = double(end1 - start1) / CLOCKS_PER_SEC;
@@ -560,6 +568,7 @@ int main()
     cerr << "Time find solution: " << duration2 << " seconds" << endl;
 
     // system("python visualize.py");
-
+    string command_post = "python ./api_request/post_test_quest.py --user_id tai_test --question_id " + id;
+    system(command_post.c_str());
     return 0;
 }

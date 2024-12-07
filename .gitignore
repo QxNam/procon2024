@@ -1,2 +1,7 @@
 *.exe
 .vscode
+*.json
+*.txt
+*ipynb
+test.*
+.DS_Store

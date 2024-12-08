@@ -182,6 +182,6 @@ pyrightconfig.json
 *.exe
 !test_problem/*.json
 test_problem/*.png
-
+*.json
 submissions
 *.db

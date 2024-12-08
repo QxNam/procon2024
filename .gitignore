@@ -8,7 +8,7 @@ test.*
 .env
 .venv
 !requirements.txt
-
+__pycache__
 env/
 venv/
 ENV/

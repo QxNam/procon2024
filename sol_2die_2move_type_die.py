@@ -1,91 +1,67 @@
+from utils import apply_die_cutting, load_data, estimate_time, save_figure, load_dies, create_json_submit
+from find_corners_numpy import find_corners_numpy
 import numpy as np
-from scipy.ndimage import label
+import json
+import bisect
+import argparse
 
-def find_corners_numpy(matrix1, matrix2):
-    matrix1 = np.array(matrix1)
-    matrix2 = np.array(matrix2)
-    diff = matrix1 != matrix2
-    if not np.any(diff):  return None
-
-    labeled, num_features = label(diff)
-    corners = []
-    
-    for i in range(1, num_features + 1):
-        indices = np.argwhere(labeled == i)
-        
-        top = np.min(indices[:, 0]) 
-        bottom = np.max(indices[:, 0])  
-        left = np.min(indices[:, 1])  
-        right = np.max(indices[:, 1])
-        
-        new_corners = [top, left, bottom, right]
-        
-        overlap = False
-        for corner in corners:
-            prev_top, prev_left, prev_bottom, prev_right = corner
-            if not (right < prev_left or left > prev_right or bottom < prev_top or top > prev_bottom):
-                overlap = True
-                break
-        
-        if not overlap: corners.append(new_corners)
-    
-    return corners
-def check_type(sub_matrix, sub_matrix_goal):
-    lst_col = []
-    lst_row = []
-    for ci in range(4):
-        col_goal_ci = sub_matrix_goal[:,ci]
-        for cj in range(sub_matrix.shape[1]):
-            if np.array_equal(sub_matrix[:,cj], col_goal_ci):
-                lst_col.append(cj)
-    for ri in range(4):
-        row_goal_ri = sub_matrix_goal[ri]
-        for rj in range(sub_matrix.shape[0]):
-            if np.array_equal(sub_matrix[rj], row_goal_ri):
-                lst_row.append(rj)
-    for i in range(len(lst_col)-1):
-        if lst_col[i+1] == lst_col[i]+2: 
-            return [3, min(lst_col)]
-        elif lst_col[i+1] == lst_col[i] +1: 
-            return [1, min(lst_col)]
-        return 0
-    for j in range(len(lst_row)-1):
-        if lst_row[j+1] == lst_row[j]+2: 
-            return [2, min(lst_row)]
-def sol_corner(board, goal):
-    corners = find_corners_numpy(board, goal) # sửa cái này lấy vùng liên thông lớn nhất
-    w_board = len(board[0])
+def solve_2moves(h, w, board, goal, dies):
+    x_start = 0
+    y_start = 0
+    for i in range(w):
+        if board[1][i] != goal[1][i]:
+            x_start = i
+            break
+    for i in range(h):
+        if board[i][0] != goal[i][0]:
+            y_start = i
+            break
     results = []
-    for i in corners:
-        top, left, bottom, right = i
-        die_id = max(bottom-top, right-left)
-        die_size = [1, 2, 4, 8, 16, 32, 64, 128, 256]
-        die_=[die_size[bisect.bisect_right(die_size, die_id) - 1],  die_size[bisect.bisect_left(die_size, die_id)]]
-        sub_matrix = board[top:bottom+1, left:right+1]
-        sub_matrix_goal = goal[top:bottom+1, left:right+1]
-        counts1 = {i: np.sum(sub_matrix == i) for i in range(4)}
-        counts2 = {i: np.sum(sub_matrix_goal == i) for i in range(4)}
-        if counts1 == counts2:  
-            type_die = check_type(sub_matrix, sub_matrix_goal)[0]
-            start_x = check_type(sub_matrix, sub_matrix_goal)[1]
-            if type_die == 1:
-                for d in [1,2,3]:
-                    for matrix_id in die_:
-                        state= apply_die_cutting(sub_matrix, dies[die_size.index(matrix_id)*3-2], start_x, 0, d)
-                        if np.all(state == sub_matrix_goal):  
-                            results.append(( die_size.index(matrix_id)*3-2,  start_x+left , top, d))
-            elif type_die ==3:
-                for d in [1,2,3]:
-                    for matrix_id in die_:
-                        if left >= w_board//2:
-                            state= apply_die_cutting(sub_matrix, dies[die_size.index(matrix_id)*3], start_x-1 , 0, d)
-                            if np.all(state == sub_matrix_goal): results.append(( die_size.index(matrix_id)*3,  start_x+left-1 , top, d))
-                        else:    
-                            state= apply_die_cutting(sub_matrix, dies[die_size.index(matrix_id)*3], start_x , 0, d)
-                            w_die = len(dies[die_size.index(matrix_id)*3]) + start_x
-                            if np.all(state == sub_matrix_goal) and w_die <= w_board: results.append(( die_size.index(matrix_id)*3,  start_x , top, d))
-            else: pass
-    return {
-        "n": len(results),
-        "ops": [{"p": re[0], "x": re[1], "y": re[2], "s": re[3]} for re in results]
-    }
+    for y in range(y_start, h):
+        for x in range(0, w):
+            direcs = [0, 2, 3]
+            if x > x_start:
+                direcs = [2, 3]
+            for idie, die in enumerate(dies):
+                for d in direcs:
+                    state1 = apply_die_cutting(board, die, x, y, d)
+                    if np.all(state1[:, :x_start] == goal[:, :x_start]):
+                        results.append({
+                            'p': idie,
+                            'x': x,
+                            'y': y,
+                            's': d
+                        })
+
+                        for y2 in range(0, h):
+                            for x2 in range(x_start, w):
+                                for d2 in [0, 1, 2]:
+                                    state2 = apply_die_cutting(state1, die, x2, y2, d2)
+                                    if np.all(state2 == goal):
+                                        results.append({
+                                            'p': idie,
+                                            'x': x2,
+                                            'y': y2,
+                                            's': d2
+                                        })
+                                        return results
+                        results = []
+
+def main(id):
+    data = load_data(id)
+    board = data['board'].copy()
+    goal = data['goal'].copy()
+    dies = data['dies']
+    height = data['h']
+    weight = data['w']
+    sol = solve_2moves(height, weight, board, goal, dies)
+    print(json.dumps(sol, indent=2)) 
+    create_json_submit(id, sol)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Solve the 2-move by ID.')
+    parser.add_argument("--id", type=int, required=True, help="The ID of the question")
+    
+    args = parser.parse_args()
+    
+    main(args.id)

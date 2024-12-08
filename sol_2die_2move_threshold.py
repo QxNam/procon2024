@@ -1,13 +1,17 @@
-from states.utils import apply_die_cutting, load_data, estimate_time, save_figure, load_dies
-from sol_2die_2move_type_die import find_corners_numpy
+from utils import apply_die_cutting, load_data, estimate_time, save_figure, load_dies, create_json_submit
+from find_corners_numpy import find_corners_numpy
+import numpy as np
+import json
+import bisect
+import argparse
 
-def sol_3(h, w, board, goal, dies): # 2 die 2 moves dựa trên ngưỡng
+def sol2thres(h, w, board, goal, dies): # 2 die 2 moves dựa trên ngưỡng
     max_score = np.sum(board!=goal)
     results= []
     top, left, _, _ = find_corners_numpy(board, goal)[0]
     for x in range(left, w):
         for y in range(top, h):
-            for d in [0,2,3]: #có thể đổi hướng dựa trên vis
+            for d in [0,2,3]:
                 for id, die in enumerate(dies):
                     new_state = apply_die_cutting(board, die, x, y, d)
                     score = np.sum(new_state!=goal)
@@ -16,7 +20,7 @@ def sol_3(h, w, board, goal, dies): # 2 die 2 moves dựa trên ngưỡng
                         top2, left2, _, _ = find_corners_numpy(new_state, goal)[0]
                         for x2 in range(left2, w):
                             for y2 in range(top2, h):
-                                for d2 in [3,2]:  #có thể đổi hướng dựa trên vis
+                                for d2 in [3,2]:
                                     for id2, die2 in enumerate(dies):
                                         new_state2 = apply_die_cutting(new_state, die2, x2, y2, d2)
                                         score2 = np.sum(new_state2!=goal)
@@ -25,5 +29,22 @@ def sol_3(h, w, board, goal, dies): # 2 die 2 moves dựa trên ngưỡng
                                             return results
                                             
                                     
-    # return results
+    return results
+def main(id):
+    data = load_data(id)
+    board = data['board'].copy()
+    goal = data['goal'].copy()
+    dies = data['dies']
+    height = data['h']
+    weight = data['w']
+    sol = sol2thres(height, weight, board, goal, dies)
+    print(json.dumps(sol, indent=2)) 
+    create_json_submit(id, sol)
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Solve the 2-move by ID.')
+    parser.add_argument("--id", type=int, required=True, help="The ID of the question")
+    
+    args = parser.parse_args()
+    
+    main(args.id)

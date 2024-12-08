@@ -1,12 +1,25 @@
----- venv
+# Cách sử dụng
+
+```bash
 python3.12 -m venv venv
 source venv/bin/activate
+```
+Lấy đề
 
----- get question
+```bash
 python3.12 question.py --id {id}
+```
 
----- solves
-python3.12 sol_1_move.py --id {id}
+Giải
 
----- post ans
+```bash
+python3.12 sol_{}.py --id {id}
+```
+
+Nộp bài
+```bash
 python3.12 submid.py --id {id}
+```
+
+----------
+

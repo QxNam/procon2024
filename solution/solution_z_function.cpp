@@ -7,6 +7,11 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <array>
+#include <chrono>
+#include <cassert>
+
+
 
 using namespace std;
 #define ll long long
@@ -577,7 +582,7 @@ int main(int argc, char* argv[])
     cerr << "Time find solution: " << duration2 << " seconds" << endl;
 
     // system("python visualize.py");
-    string command_post = "python ./api_request/post_test_quest.py --user_id tai_test --question_id " + id;
+    string command_post = "python ./api_request/post_test_quest.py --question_id " + id;
     system(command_post.c_str());
     return 0;
 }

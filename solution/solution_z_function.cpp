@@ -12,9 +12,9 @@
 #include <cassert>
 
 
-
 using namespace std;
 #define ll long long
+#define endl '\n'
 #define TOP 0 
 #define BOTTOM 1 
 #define LEFT 2 
@@ -362,7 +362,7 @@ vector<operation> apply_z_funtion(board cur_board)
     ll total_cells = height * width;
     ll progress_threshold = 5; // Ngưỡng hiển thị tiến trình (5%)
     ll next_report = progress_threshold * total_cells / 100; 
-    auto start_time = std::chrono::high_resolution_clock::now();
+    auto start_time = chrono::high_resolution_clock::now();
     ll processed_cells = 0; 
 
     map<ll, ll> cntlen, cntdie;
@@ -423,10 +423,11 @@ vector<operation> apply_z_funtion(board cur_board)
 
             if (processed_cells >= next_report) 
             {
-                auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
-                auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count();
+                auto elapsed_time = chrono::high_resolution_clock::now() - start_time;
+                auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(elapsed_time).count();
                 double progress = (double)processed_cells / total_cells * 100;
-                cerr << "\rProcessing: " << std::setw(3) << std::setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s" << flush;
+                cerr << "\rProcessing: " << setw(3) << setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s" << flush;
+                next_report += progress_threshold * total_cells / 100; 
             }
         }
     }
@@ -481,7 +482,7 @@ void print_answer(const vector<operation> &answer, string id)
 void solve(string question_id) {
     init_die();
     read_input();
-    // cerr<<calculate_number_identical_squares(start, goal)<<"/"<<width*height<<endl;
+    cerr<<calculate_number_identical_squares(start, goal)<<"/"<<width*height<<endl;
     vector<operation> answer=apply_z_funtion(start);
     print_answer(answer, question_id);
     // for (operation opt: answer) start=start.apply_die(opt);
@@ -492,7 +493,7 @@ void solve(string question_id) {
 int main(int argc, char* argv[])
 {
     if (argc != 2) {
-        std::cerr << "Used argument: " << argv[0] << " <question_id>" << std::endl;
+        cerr << "Used argument: " << argv[0] << " <question_id>" << endl;
         return 1; // Thoát với mã lỗi
     }
 
@@ -500,7 +501,7 @@ int main(int argc, char* argv[])
     string question_id = argv[1];
     string input_file = "data\\input_" + question_id + ".txt";
     string output_file = "data\\output_" + question_id + ".txt";
- 
+
     ios_base::sync_with_stdio(false); cin.tie(NULL);
     #ifndef ONLINE_JUDGE
     freopen(input_file.c_str(), "r", stdin);

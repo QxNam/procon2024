@@ -5,7 +5,7 @@ import dotenv
 import os
 
 url = f"https://proconvn.duckdns.org"
-url = f"https://procon.iuhkart.systems"
+url = f"https://procon.iuhkart.systems"              # nhớ sửa lại PROCON_TOKEN trong .env trong get_test_quest và post_test_quest 
 dotenv.load_dotenv()
 PROCON_TOKEN = os.environ.get('PROCON_TOKEN', "UNKNOWN")
 HEADER = {"Authorization": PROCON_TOKEN}
@@ -15,6 +15,7 @@ parser.add_argument("--question_id", type=int, required=True, help="ID question 
 
 def get_origin_problem(question_id:int) ->dict:
     url_request = url + f"/question/{question_id}"
+    print('GET: ', url_request)
     data = requests.get(url_request, headers=HEADER)
     if data.json():
         final_data = data.json().get('question_data')
@@ -29,6 +30,7 @@ def get_origin_problem(question_id:int) ->dict:
         
 def get_test(question_id:int) ->dict:
     url_request = url + f"/question/{question_id}"
+    print('GET: ', url_request)
     data = requests.get(url_request, headers=HEADER)
     if data.status_code == 200:
         data = data.json()
@@ -50,7 +52,6 @@ def get_test(question_id:int) ->dict:
 if __name__ == "__main__":
     args = parser.parse_args()
     question_id = args.question_id
-    print("Submit at ",url)
     if url == "https://proconvn.duckdns.org":
         get_origin_problem(question_id)
     else:

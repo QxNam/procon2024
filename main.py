@@ -6,7 +6,7 @@
 
 # python main.py --solution z_function --question_id 75
 
-
+import time
 import argparse
 import subprocess
 
@@ -17,9 +17,14 @@ args = parser.parse_args()
 
 solution_type = args.solution
 question_id = args.question_id
+start_time = time.time()
 
 subprocess.run(f"python ./api/get_test_quest.py --question_id {question_id}", shell=True, check=True)
 subprocess.run(f"python ./solution/convert_txt.py --question_id {question_id}", shell=True, check=True)
 subprocess.run(f"g++ -std=c++20 -o solution/solution_{solution_type}.exe solution/solution_{solution_type}.cpp", shell=True, check=True)
 subprocess.run(f"solution\solution_{solution_type}.exe {question_id}", shell=True, check=True)
 subprocess.run(f"python ./api/post_test_quest.py --question_id {question_id}", shell=True, check=True)
+
+end_time = time.time()
+total_time = end_time - start_time
+print(f"Hoàn thành trong {total_time:.2f} giây.")

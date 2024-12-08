@@ -4,3 +4,4 @@
 *.txt
 test.*
 .DS_Store
+venv

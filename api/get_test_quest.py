@@ -18,6 +18,7 @@ def get_test(id:int) ->dict:
     data = requests.get(url_request, headers=HEADER)
     if data.json():
         final_data = data.json().get('question_data')
+        os.makedirs("./data", exist_ok=True)
         final_data = eval(final_data)
         file_path = f"./data/input_{id}.json"
         with open(file_path, 'w', encoding='utf-8') as file:

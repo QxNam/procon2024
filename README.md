@@ -1,84 +1,101 @@
-# Hướng dẫn sử dụng
+# Hướng dẫn chạy bài toán
 
-## 1. Sao chép dữ liệu vào `input.json`
+## Mô tả
+Chương trình này được thiết kế để thực hiện các bước sau:
+1. **Tải dữ liệu câu hỏi** từ API (`get_test_quest.py`).
+2. **Chuyển đổi dữ liệu** từ định dạng JSON sang định dạng đầu vào TXT để c++ có thể đọc
+3. **Biên dịch và chạy giải pháp C++** để tìm lời giải.
+4. **Gửi kết quả lời giải** qua API (`post_test_quest.py`).
 
-Để chạy chương trình, bạn cần sao chép dữ liệu JSON của bạn vào file `input.json`. Đảm bảo rằng file `input.json` có cấu trúc đúng theo yêu cầu của chương trình.
+## Thư mục cấu trúc
 
-Ví dụ: 
-
-```json
-{
-    "board": {
-        "width": 7,
-        "height": 6,
-        "start": [
-            [1, 0, 1, 1, 2, 2, 1],
-            [2, 3, 1, 1, 0, 0, 2],
-            [3, 0, 2, 1, 1, 1, 1],
-            [3, 0, 0, 2, 2, 3, 1],
-            [2, 2, 3, 2, 0, 2, 2],
-            [3, 3, 1, 0, 3, 2, 3]
-        ],
-        "goal": [
-            [1, 0, 1, 1, 2, 2, 1],
-            [2, 3, 1, 1, 0, 0, 2],
-            [3, 0, 1, 1, 1, 1, 2],
-            [3, 0, 2, 3, 1, 0, 2],
-            [2, 2, 0, 2, 2, 2, 3],
-            [3, 3, 1, 0, 3, 2, 3]
-        ]
-    },
-    "general": {
-        "n": 1,
-        "patterns": [
-            {
-                "p": 25,
-                "width": 3,
-                "height": 3,
-                "cells": [
-                    [0, 1, 0],
-                    [1, 0, 1],
-                    [1, 1, 0]
-                ]
-            }
-        ]
-    }
-}
+```plaintext
+.
+├── api/
+│   ├── get_test_quest.py      
+│   ├── post_test_quest.py     
+├── solution/
+│   ├── convert_txt.py         
+│   ├── solution_beam_search.cpp
+│   ├── solution_BFS.cpp  
+│   ├── solution_BFS_binary_lifting.cpp 
+│   ├── solution_z_function.cpp 
+├── main.py          
+├── requirements.txt       
+├── README.md           
 ```
 
-Tham khảo ma trận 256x256: https://drive.google.com/file/d/1DQiXZ4Y9KZFBqtFPfbpkCzalp699YAzl/view?usp=sharing
-    
-## 2. Biên dịch và chạy file C++
+### Yêu cầu
+- Python (phiên bản >= 3.9)
+- Trình biên dịch `g++` hỗ trợ chuẩn C++20
+- Hệ điều hành Windows (hoặc cần điều chỉnh đường dẫn trên Unix/Linux)
 
-### **Cách 1: Chạy `solution_BFS.cpp`**
+## Cách chạy
+
+### Cài đặt các thư viện yêu cầu
+Trước khi chạy chương trình, hãy cài đặt các thư viện Python yêu cầu bằng cách sử dụng requirements.txt:
+```bash 
+pip install -r requirements.txt
+```
+
+### Chạy từng phần riêng lẻ
+1. **Tải dữ liệu câu hỏi:**
 
 ```bash
-g++ -o solution_BFS solution_BFS.cpp && ./solution_BFS
+python ./api/get_test_quest.py --question_id <id>
 ```
-
-### **Cách 2: Chạy `solution_BFS_binary_lifting.cpp`**
+#### Ví dụ 
 
 ```bash
-g++ -o solution_BFS_binary_lifting solution_BFS_binary_lifting.cpp && ./solution_BFS_binary_lifting
+python ./api/get_test_quest.py --question_id 75
 ```
 
-### **Cách 3: Chạy `solution_beam_search.cpp`**
+2. **Chuyển đổi dữ liệu:**
 
 ```bash
-g++ -o solution_beam_search solution_beam_search.cpp && ./solution_beam_search
+python ./solution/convert_txt.py --question_id <id>
 ```
-
-### **Cách 4: Chạy `solution_z_function.cpp`**
+#### Ví dụ 
 
 ```bash
-g++ -std=c++20 -o solution_z_function solution_z_function.cpp; if ($?) { ./solution_z_function --id }
+python ./solution/convert_txt.py --question_id 75
 ```
-
-### **Cách 4: Chạy `solution_z_function.cpp`**
+3. **Biên dịch và chạy giải pháp C++:**
 
 ```bash
-g++ -std=c++20 -o solution_z_function solution_z_function.cpp; if ($?) { ./solution_z_function --id }
+g++ -std=c++20 -o solution/solution_z_function.exe solution/solution_z_function.cpp
+solution/solution_z_function.exe <id>
 ```
-## 3. Kết quả 
+#### Ví dụ 
 
-Sau khi chạy chương trình, các bước di chuyển sẽ được xuất ra file output.json.
+```bash
+g++ -std=c++20 -o solution/solution_z_function.exe solution/solution_z_function.cpp
+solution/solution_z_function.exe 75
+```
+4. **Gửi kết quả lời giải:**
+
+```bash
+python ./api/post_test_quest.py --question_id <id>
+```
+#### Ví dụ 
+
+```bash
+python ./api/post_test_quest.py --question_id 75
+```
+## Chạy tất cả các bước
+Để chạy toàn bộ các bước tự động, sử dụng file main.py:
+
+```bash
+python main.py --solution <solution_type> --question_id <id>
+```
+#### Ví dụ 
+
+```bash
+python main.py --solution z_function --question_id 75
+```
+
+#### Các loại giải pháp có thể sử dụng:
+- z_function
+- BFS
+- BFS_binary_lifting
+- beam_search

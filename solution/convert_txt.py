@@ -1,7 +1,11 @@
 import json
+import argparse
+
+parser = argparse.ArgumentParser(description="Process some integers.")
+parser.add_argument("--question_id", type=int, required=True, help="ID question cần nhập vào")
 
 # Hàm lưu dữ liệu gốc vào file
-def save_original_data(data, filename):
+def save_data(data, filename):
     with open(filename, "w") as f:
         # BOARD
         board = data['board']
@@ -20,12 +24,15 @@ def save_original_data(data, filename):
                 for row in pattern['cells']:
                     f.write("".join(map(str, row)) + "\n")
 
-# Đọc dữ liệu JSON
-with open("input.json", "r") as file:
-    data = json.load(file)
+if __name__ == "__main__":
+    args = parser.parse_args()
+    question_id = args.question_id
+    
+    # Đọc dữ liệu JSON
+    with open(f"data\input_{question_id}.json", "r") as file:
+        data = json.load(file)
 
-# Lưu dữ liệu gốc vào file input_row.txt
-save_original_data(data, "input_row.txt")
-
-print("The original data has been saved to 'input_row.txt'.")
+    # Lưu dữ liệu gốc vào file input_row.txt
+    save_data(data, f"data\input_{question_id}.txt")
+    print(f"The original data has been saved to 'input_{question_id}.txt'.")
 

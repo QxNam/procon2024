@@ -180,6 +180,8 @@ pyrightconfig.json
 .env
 *.ipynb
 *.exe
-*.json
 !test_problem/*.json
 test_problem/*.png
+
+submissions
+*.db

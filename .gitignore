@@ -185,3 +185,4 @@ test_problem/*.png
 *.json
 submissions
 *.db
+.python-version

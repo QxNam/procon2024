@@ -5,6 +5,7 @@ import dotenv
 import os
 
 url = f"https://proconvn.duckdns.org"
+url = f"https://procon.iuhkart.systems"
 dotenv.load_dotenv()
 PROCON_TOKEN = os.environ.get('PROCON_TOKEN', "UNKNOWN")
 HEADER = {"Authorization": PROCON_TOKEN}
@@ -30,11 +31,32 @@ def submit_anwer(question_id:int):
     else:
         print("Error submit!")
         print(response.json())
+        
+def submit_anwer_test(question_id:int):
+    url_request = url + f"/answer"
+    submit_data = {}
+    submit_data["question_id"] = question_id
+    with open(f"data\output_{question_id}.json", 'r') as file:
+        ans_data = json.load(file)
+    if ans_data:
+        submit_data["answer_data"] = ans_data
+    
+    response = requests.post(url_request, json= submit_data, headers=HEADER)
+    if response.status_code==200:
+        response_answer = requests.get(f"{url_request}/{question_id}", headers=HEADER)
+        print(response_answer.json())
+    else:
+        print("Error submit!")
+        print(response.json())
     
 
 if __name__ == "__main__":
     args = parser.parse_args()
     question_id = args.question_id 
-    submit_anwer(question_id)
+    print("Post link: ", url)
+    if url == "https://proconvn.duckdns.org":
+        submit_anwer(question_id)
+    else: 
+        submit_anwer_test(question_id)
         
     

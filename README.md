@@ -16,10 +16,10 @@ import requests
 
 ```python
 data = {
-    "username": "a",
-    "password": "1234"
+    "username": USER_NAME,
+    "password": PASSWORD"
 }
-response = requests.post("http://192.168.1.3:8000/auth/register", json=data)
+response = requests.post("https://procon.iuhkart.systems/auth/register", json=data)
 print(response.status_code)
 response.json()
 ```
@@ -30,7 +30,7 @@ response.json()
 headers = {
     "Authorization": None
 }
-response = requests.post("http://192.168.1.3:8000/auth/token", data=data)
+response = requests.post("https://procon.iuhkart.systems/auth/token", data=data)
 if response.status_code == 201:
     token = response.json()['token']
     headers["Authorization"] = token
@@ -40,29 +40,29 @@ headers
 
 ## Lấy đề
 
-Endpoint: `http://192.168.1.3:8000/question/<id>`
+Endpoint: `https://procon.iuhkart.systems/question/<id>`
 
 ```python
-response = requests.get("http://192.168.1.3:8000/question/70", headers=headers)
+response = requests.get("https://procon.iuhkart.systems/question/70", headers=headers)
 print(response.status_code)
 print(response.json())
 ```
 
-Endpoint: `http://192.168.1.3:8000/answer`
+Endpoint: `https://procon.iuhkart.systems/answer`
 
 ```python
 import json
 with open('70.json', 'r') as f:
     data = json.load(f)
 
-response = requests.post("http://192.168.1.3:8000/answer", json=data, headers=headers)
+response = requests.post("https://procon.iuhkart.systems/answer", json=data, headers=headers)
 print(response.status_code)
 print(response.json())
 ```
 
 ## Xem bài nộp
 
-Endpoint: `http://192.168.1.3:8000/answer/70?user_id=1`
+Endpoint: `https://procon.iuhkart.systems/answer/70?user_id=1`
 
 ```python
 response = requests.get("http://192.168.1.3:8000/answer/70", headers=headers)

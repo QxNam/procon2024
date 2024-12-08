@@ -65,7 +65,7 @@ print(response.json())
 Endpoint: `https://procon.iuhkart.systems/answer/70?user_id=1`
 
 ```python
-response = requests.get("http://192.168.1.3:8000/answer/70", headers=headers)
+response = requests.get("https://procon.iuhkart.systems/answer/70", headers=headers)
 print(response.status_code)
 print(response.json())
 ```

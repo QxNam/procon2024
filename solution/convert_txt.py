@@ -29,10 +29,10 @@ if __name__ == "__main__":
     question_id = args.question_id
     
     # Đọc dữ liệu JSON
-    with open(f"data\input_{question_id}.json", "r") as file:
+    with open(f"data\input\input_{question_id}.json", "r") as file:
         data = json.load(file)
 
     # Lưu dữ liệu gốc vào file input_row.txt
-    save_data(data, f"data\input_{question_id}.txt")
-    print(f"The original data has been saved to 'input_{question_id}.txt'.")
+    save_data(data, f"data\input\input_{question_id}.txt")
+    print(f"The original data has been saved to 'data\input\input_{question_id}.txt'.")
 

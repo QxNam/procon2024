@@ -10,11 +10,12 @@
 #include <array>
 #include <chrono>
 #include <cassert>
-
+#include <filesystem>
 
 
 using namespace std;
-#define ll long long
+#define ll int 
+#define endl '\n'
 #define TOP 0 
 #define BOTTOM 1 
 #define LEFT 2 
@@ -328,7 +329,7 @@ array<ll, 3> z_function(const board &cur_board, const board &goal, ll curx, ll c
     string s;
     for (ll j=cury; j<width; j++) s.push_back(goal.matrix[curx][j]);
     s.push_back('$');
-    ll m=s.size(), min_step=1e18, len=1;
+    ll m=s.size(), min_step=1e9, len=1;
     pair<ll, ll> ans={-1, -1};
 
     string x=s;
@@ -362,10 +363,8 @@ vector<operation> apply_z_funtion(board cur_board)
     ll total_cells = height * width;
     ll progress_threshold = 5; // Ngưỡng hiển thị tiến trình (5%)
     ll next_report = progress_threshold * total_cells / 100; 
-    auto start_time = std::chrono::high_resolution_clock::now();
+    auto start_time = chrono::high_resolution_clock::now();
     ll processed_cells = 0; 
-
-    map<ll, ll> cntlen, cntdie;
 
     for (ll i=0; i<height; i++)
     {
@@ -373,8 +372,7 @@ vector<operation> apply_z_funtion(board cur_board)
         {
             processed_cells++;
             if (cur_board.matrix[i][j]==goal.matrix[i][j]) continue;
-            auto [x, y, len]=z_function(cur_board, goal, i, j);  
-            ++cntlen[len];    
+            auto [x, y, len]=z_function(cur_board, goal, i, j);   
             while (y<j) 
             {
                 ll d=j-y;
@@ -382,7 +380,6 @@ vector<operation> apply_z_funtion(board cur_board)
                 {
                     cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x, y+len, RIGHT));
                     answer.push_back(operation((k==0?0:3*k-2), x, y+len, RIGHT));
-                    ++cntdie[((k==0?0:3*k-2))];
                     // cout<<"[direction, id, x, y]:   RIGHT "<<dies[(k==0)?0:3*k-2].height<<" "<<x<<" "<<y+len<<" "<<endl;
                     // cur_board.print();
                     y+=(1LL<<k);
@@ -395,7 +392,6 @@ vector<operation> apply_z_funtion(board cur_board)
                 {
                     cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x, y-(1LL<<k), LEFT));
                     answer.push_back(operation((k==0?0:3*k-2), x, y-(1LL<<k), LEFT));
-                    ++cntdie[((k==0?0:3*k-2))];
                     // cout<<"[direction, id, x, y]:   LEFT "<<dies[(k==0)?0:3*k-2].height<<" "<<x<<" "<<y-(1LL<<k)<<" "<<endl;
                     // cur_board.print();
                     y-=(1LL<<k);
@@ -413,7 +409,6 @@ vector<operation> apply_z_funtion(board cur_board)
                     ll die_id=(k==0?0:3*k-2);
                     cur_board=cur_board.apply_die(operation(die_id, row_distances[l]-(1LL<<k), y+l, TOP));
                     answer.push_back(operation(die_id, row_distances[l]-(1LL<<k), y+l, TOP));
-                    ++cntdie[((k==0?0:3*k-2))];
                     assert(row_distances[l]-(1LL<<k)>=i);
                     for (ll t=l; t<l+dies[die_id].width && t<len; t++) row_distances[t]-=(1LL<<k);
                     // cout<<"[direction, id, x, y]:   TOP "<<dies[die_id].height<<" "<<row_distances[l]-(1LL<<k)<<" "<<y+l<<" "<<endl;
@@ -423,16 +418,15 @@ vector<operation> apply_z_funtion(board cur_board)
 
             if (processed_cells >= next_report) 
             {
-                auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
-                auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count();
+                auto elapsed_time = chrono::high_resolution_clock::now() - start_time;
+                auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(elapsed_time).count();
                 double progress = (double)processed_cells / total_cells * 100;
-                cerr << "\rProcessing: " << std::setw(3) << std::setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s" << flush;
+                cerr << "\rProcessing: " << setw(3) << setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s" << flush;
+                next_report += progress_threshold * total_cells / 100; 
             }
         }
     }
     cerr<<endl;
-    cout<<"len count: \n"; for (auto [x, y]: cntlen) cout<<x<<" "<<y<<endl; cout<<endl;
-    cout<<"die count: \n"; for (auto [x, y]: cntdie) cout<<x<<" "<<y<<endl; cout<<endl;
     return answer;
 }
 
@@ -440,7 +434,7 @@ vector<operation> apply_z_funtion(board cur_board)
 void print_answer(const vector<operation> &answer, string id)
 {
     // Mở file để ghi
-    ofstream outFile("data\\output_"+id+".json");
+    ofstream outFile("data\\output\\output_"+id+".json");
     if (!outFile.is_open())
     {
         cerr << "Không thể mở file để ghi!" << endl;
@@ -475,13 +469,13 @@ void print_answer(const vector<operation> &answer, string id)
 
     // Đóng file
     outFile.close();
-    cerr << "Data successfully written to data\\output_"<<id<<".json" << endl;
+    cerr << "Data successfully written to data\\output\\output_"<<id<<".json" << endl;
 }
 
 void solve(string question_id) {
     init_die();
     read_input();
-    // cerr<<calculate_number_identical_squares(start, goal)<<"/"<<width*height<<endl;
+    cerr<<calculate_number_identical_squares(start, goal)<<"/"<<width*height<<endl;
     vector<operation> answer=apply_z_funtion(start);
     print_answer(answer, question_id);
     // for (operation opt: answer) start=start.apply_die(opt);
@@ -492,16 +486,17 @@ void solve(string question_id) {
 int main(int argc, char* argv[])
 {
     if (argc != 2) {
-        std::cerr << "Used argument: " << argv[0] << " <question_id>" << std::endl;
+        cerr << "Used argument: " << argv[0] << " <question_id>" << endl;
         return 1; // Thoát với mã lỗi
     }
 
     // Đọc file input_{id}.txt và ghi kết quả ra file output_{id}.txt
     string question_id = argv[1];
-    string input_file = "data\\input_" + question_id + ".txt";
-    string output_file = "data\\output_" + question_id + ".txt";
- 
+    string input_file = "data\\input\\input_" + question_id + ".txt";
+    string output_file = "data\\output\\output_" + question_id + ".txt";
+
     ios_base::sync_with_stdio(false); cin.tie(NULL);
+    filesystem::create_directories("data\\output");
     #ifndef ONLINE_JUDGE
     freopen(input_file.c_str(), "r", stdin);
     freopen(output_file.c_str(), "w", stdout);

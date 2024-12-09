@@ -19,7 +19,7 @@ def submit_anwer(question_id:int):
     print('POST: ', url_request)
     submit_data = {}
     submit_data["question_id"] = question_id
-    with open(f"data\output_{question_id}.json", 'r') as file:
+    with open(f"data\output\output_{question_id}.json", 'r') as file:
         ans_data = json.load(file)
     if ans_data:
         submit_data["answer_data"] = ans_data
@@ -38,7 +38,7 @@ def submit_anwer_test(question_id:int):
     print('POST: ', url_request)
     submit_data = {}
     submit_data["question_id"] = question_id
-    with open(f"data\output_{question_id}.json", 'r') as file:
+    with open(f"data\output\output_{question_id}.json", 'r') as file:
         ans_data = json.load(file)
     if ans_data:
         submit_data["answer_data"] = ans_data

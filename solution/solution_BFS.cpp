@@ -1,4 +1,19 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include <deque>
+#include <map>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <array>
+#include <chrono>
+#include <cassert>
+#include <filesystem>
+#include<queue>
+
+
 using namespace std;
 #define ll long long
 #define endl '\n'
@@ -277,74 +292,12 @@ vector<tuple<ll, ll, ll, ll>> apply_bfs(vector<string> &start, bool is_debug=fal
     return answer;
 }
 
-// Hàm thêm dữ liệu vào file all_solution.json
-void append_answer_to_all_solution(const vector<tuple<ll, ll, ll, ll>> &answer) {
-    // Đọc nội dung của file all_solution.json
-    ifstream inFile("all_solution.json");
-    string content;
-    if (inFile.is_open()) {
-        stringstream buffer;
-        buffer << inFile.rdbuf();
-        content = buffer.str();
-        inFile.close();
-    }
-
-    // Kiểm tra nếu file trống hoặc không đúng định dạng JSON
-    if (content.empty()) {
-        content = "[\n";
-    } else {
-        // Xóa dấu đóng "]" cuối cùng nếu file đã có dữ liệu
-        size_t pos = content.rfind("]");
-        if (pos != string::npos) {
-            content = content.substr(0, pos);
-        } else {
-            cerr << "File all_solution.json không đúng định dạng!" << endl;
-            return;
-        }
-        content += ",\n";  // Thêm dấu phẩy để ngăn cách các phần tử
-    }
-
-    // Chuyển answer thành chuỗi JSON
-    stringstream ss;
-    ss << "  {\n";
-    ss << "    \"n\":" << answer.size() << ",\n";
-    ss << "    \"ops\":[\n";
-    for (size_t i = 0; i < answer.size(); ++i) {
-        auto [p, x, y, s] = answer[i];
-        ss << "      {\n";
-        ss << "        \"p\":" << p << ",\n";
-        ss << "        \"x\":" << x << ",\n";
-        ss << "        \"y\":" << y << ",\n";
-        ss << "        \"s\":" << s << "\n";
-        ss << "      }";
-        if (i != answer.size() - 1) {
-            ss << ",";
-        }
-        ss << "\n";
-    }
-    ss << "    ]\n";
-    ss << "  }";
-
-    // Thêm dữ liệu mới vào content
-    content += ss.str();
-    content += "\n]";
-
-    // Ghi nội dung mới vào file all_solution.json
-    ofstream outFile("all_solution.json");
-    if (!outFile.is_open()) {
-        cerr << "Không thể mở file all_solution.json để ghi!" << endl;
-        return;
-    }
-    outFile << content;
-    outFile.close();
-    cerr << "Data successfully appended to all_solution.json" << endl;
-}
-
 // Hàm in JSON từ vector<tuple<ll, ll, ll, ll>>
-void print_answer(const vector<tuple<ll, ll, ll, ll>> &answer)
+void print_answer(const vector<tuple<ll, ll, ll, ll>> &answer, string question_id)
 {
     // Mở file để ghi
-    ofstream outFile("output.json");
+    filesystem::create_directories("data\\output");
+    ofstream outFile("data\\output\\output_"+question_id+".json");
     if (!outFile.is_open())
     {
         cerr << "Không thể mở file để ghi!" << endl;
@@ -379,43 +332,39 @@ void print_answer(const vector<tuple<ll, ll, ll, ll>> &answer)
 
     // Đóng file
     outFile.close();
-    cerr << "Data successfully written to output.json" << endl;
-    append_answer_to_all_solution(answer);
+    cerr << "Data successfully written to data\\output\\output_"+question_id+".json" << endl;
 }
 
-void solve() {
+void solve(string question_id) {
     init_die();
     read_input();
-    // print_matrix(apply_die(25, 2, 1, TOP, start));
-    // print_matrix(apply_die(25, 2, 1, BOTTOM, start));
-    // print_matrix(apply_die(25, 2, 1, LEFT, start));
-    // print_matrix(apply_die(25, 2, 1, RIGHT, start));
     answer=apply_bfs(start, 0);
     print_matrix(start);
-    print_answer(answer);
+    print_answer(answer, question_id);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    clock_t start1 = clock();
-    system("python convert_txt.py");
-    clock_t end1 = clock();
-    double duration1 = double(end1 - start1) / CLOCKS_PER_SEC;
-    cerr << "Time convert txt: " << duration1 << " seconds" << endl;
-    
+    if (argc != 2) {
+        cerr << "Used argument: " << argv[0] << " <question_id>" << endl;
+        return 1; // Thoát với mã lỗi
+    }
+
+    // Đọc file input_{id}.txt và ghi kết quả ra file output_{id}.txt
+    string question_id = argv[1];
+    string input_file = "data\\input\\input_" + question_id + ".txt";
+    string output_file = "data\\output\\output_" + question_id + ".txt";
+
     ios_base::sync_with_stdio(false); cin.tie(NULL);
     #ifndef ONLINE_JUDGE
-    freopen("input.txt", "r", stdin);
-    freopen("output.txt", "w", stdout);
+    freopen(input_file.c_str(), "r", stdin);
+    freopen(output_file.c_str(), "w", stdout);
     #endif
 
     clock_t start2 = clock();
-    solve();
+    solve(question_id);
     clock_t end2 = clock();
     double duration2 = double(end2 - start2) / CLOCKS_PER_SEC;
     cerr << "Time find solution: " << duration2 << " seconds" << endl;
-
-    // system("python visualize.py");
-
     return 0;
 }

@@ -30,6 +30,7 @@ def get_origin_problem(question_id:int) ->dict:
                 print(f"Dữ liệu đã được lưu vào tệp {file_path}")
     else:
         print(f"\033[31mError! HTTP Status Code: {data.status_code}\033[0m")  # Màu đỏ
+        print(data.json())
         print("\033[31mError when get file\033[0m")
         
 def get_test(question_id:int) ->dict:

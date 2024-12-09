@@ -24,7 +24,7 @@ using namespace std;
 
 ll width, height, n, Fixed[257][257];
 ll pre_num_matching, best_num_matching=0, check=1;
-ll dx[]={0, 0, 1, -1}, dy[]={1, -1, 0, 0}, visited[257][257];
+ll dx[]={0, 0, 1, -1}, dy[]={1, -1, 0, 0}, visited[257][257], can_stop=0;
 
 struct die_pattern
 {
@@ -208,6 +208,30 @@ struct board {
 };
 board start, goal;
 
+struct Z_function
+{
+    vector<ll> z; // z[i]=do dai tien to dai nhat cua s[0:n-1] va s[i: n-1]
+    ll n, l, r;
+    string s;
+
+    Z_function(){}
+    Z_function(string _s)
+    {
+        s=_s;
+        n=_s.size();
+        z.resize(n+5);
+        for (ll i=0; i<z.size(); i++) z[i]=0;
+        z[0]=0;
+        l=0; r=0;  //duy tri doan s[l, r)=s[0:r-l) da duoc tinh. z[i]=r-l 
+        for (ll i=1; i<n; i++)
+        {
+            if (i<r) z[i]=min(z[i-l], r-i);  //lay min (z[i-l], r-i) vi z[i-l] co the lon hon r-i vo ly
+            while (i+z[i]<n && s[z[i]]==s[i+z[i]]) ++z[i];  //thuat toan tam thuong 
+            if (i+z[i]>r) l=i, r=i+z[i];  //cap nhat doan [l, r)=[i, i+z[i])
+        }
+    }
+};
+
 // Hàm tạo khuôn Loại I
 vector<string> createTypeI(ll n) {
     vector<string> matrix(n, string(n, '1'));  // Khởi tạo vector với n chuỗi, mỗi chuỗi có n ký tự '1'
@@ -287,7 +311,7 @@ ll calculate_number_identical_squares(const board &start, const board &goal)
 }
 
 // Hàm lấy ra k phần tử có số ô vuông ở vị trí giống nhau lớn nhất. Độ phức tạp O(n.k)
-vector<ll> take_index_k_largest_elements(const vector<ll> num_candidates_matching, ll k) 
+vector<ll> take_index_k_largest_elements(const vector<ll> &num_candidates_matching, ll k) 
 {
     ll n=num_candidates_matching.size();
     vector<bool> used(n, false);
@@ -305,13 +329,15 @@ vector<ll> take_index_k_largest_elements(const vector<ll> num_candidates_matchin
 }
 
 // Hàm tạo ra ứng cử viên tiếp theo 
-vector<vector<operation>> create_next_generations(vector<vector<operation>> states, vector<die_pattern> dies, ll max_candidates=1, double grow_rate=0.1)
+vector<vector<operation>> create_next_generations(const vector<vector<operation>> &states, const vector<die_pattern> &dies, ll max_candidates=1, double grow_rate=0.01)
 {
     vector<vector<operation>> candidates, best_candidates;
     vector<ll> num_matching_matrix;
     if (states.size()==0) return best_candidates;
 
-    ll total_operations = states.size() * dies.size() * height * 2 * width * 2 * 4;
+    ll cnt=0;
+    for (ll id=0; id<dies.size(); id++) if (dies[id].height<=height && dies[id].width<=width) ++cnt;
+    ll total_operations = states.size() * cnt;
     ll processed_operations = 0;
     auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -319,110 +345,129 @@ vector<vector<operation>> create_next_generations(vector<vector<operation>> stat
     {
         board cur_board=start;
         for (operation opt: state) cur_board=cur_board.apply_die(opt);
-        for (ll id=0; id<dies.size(); id++) if (dies[id].height<=height)
+        for (ll id=0; id<dies.size(); id++) if (dies[id].height<=height && dies[id].width<=width)
+        {
             for (ll i=-height, die_height=dies[id].height; i<height; i++)
                 for (ll j=-width, die_width=dies[id].width; j<width; j++)
                     for (ll direction=0; direction<4; direction++) 
                     {
-                        processed_operations++;
-                        if (processed_operations % 10000 == 0) {
-                            auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
-                            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count();
-                            double progress = (double)processed_operations / total_operations * 100;
-                            cerr << "\rProcessing: " << std::setw(3) << std::setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s";
-                        }
-                        
                         board new_board=cur_board.apply_die(operation(id, i, j, direction));
                         vector<operation> new_state=state;
                         new_state.push_back(operation(id, i, j, direction));
                         candidates.push_back(new_state);
                         num_matching_matrix.push_back(calculate_number_identical_squares(new_board, goal));
                     }
+
+            processed_operations++;
+            auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
+            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count();
+            double progress = (double)processed_operations / total_operations * 100;
+            cerr << "\rProcessing: " << std::setw(3) << std::setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s";
+        }
     }
     cerr<<endl;
     
     best_num_matching=num_matching_matrix[0];
-    if (1.0*pre_num_matching/best_num_matching<grow_rate) return states;
-    vector<ll> index_best_candidates=take_index_k_largest_elements(num_matching_matrix, 5);
+    vector<ll> index_best_candidates=take_index_k_largest_elements(num_matching_matrix, max_candidates);
     for (ll id: index_best_candidates) best_candidates.push_back(candidates[id]);
     cerr<<num_matching_matrix[index_best_candidates[0]]<<"/"<<height*width<<endl;
+    if (num_matching_matrix[index_best_candidates[0]]==height*width) can_stop=1;
     return best_candidates;
 }
 
 // Hàm áp dụng thuật toán tìm kiếm bằng beam search 
-vector<operation> apply_beam_search(ll max_steps=1, ll max_candidates=1, double grow_rate=0.1)
+vector<operation> apply_beam_search(ll max_steps=1, ll max_candidates=1, double grow_rate=0.01)
 {
     vector<operation> init_state;
     vector<vector<operation>> candides;
     candides.push_back(init_state);
     pre_num_matching=calculate_number_identical_squares(start, goal);
-    for (ll i=0; i<max_steps; i++) 
+    for (ll i=0; can_stop==0 && i<max_steps; i++) 
     {
         cerr<<"Generation "<<i+1<<endl;
         candides=create_next_generations(candides, dies, max_candidates, grow_rate);
         if (1.0-1.0*pre_num_matching/best_num_matching<grow_rate) break;
     }
+    cerr<<"Beam search finished."<<endl;
     return candides[0];
 }
 
-pair<ll, ll> bfs(const board &start, const board &goal, ll curx, ll cury)
+ll loss(ll curx, ll cury, ll newx, ll newy, ll len)
 {
-    if (start.matrix[curx][cury]==goal.matrix[curx][cury]) return {curx, cury};
-
-    for (ll i=0; i<height; i++)
-        for (ll j=0; j<width; j++)
-            visited[i][j]=0;
-
-    queue<pair<ll, ll>> q;
-    q.push({curx, cury});
-    visited[curx][cury]=1;
-    pair<ll, ll> ans={curx, cury};
-    ll min_bit=20;
-    while (!q.empty())
-    {
-        auto [x, y]=q.front(); q.pop();
-        for (ll i=0; i<4; i++) 
-        {
-            ll newx=x+dx[i], newy=y+dy[i];
-            if (0<=newx && newx<height && 0<=newy && newy<width && Fixed[newx][newy]==0 && visited[newx][newy]==0)
-            {
-                if (start.matrix[newx][newy]==goal.matrix[curx][cury]) {
-                    ll dx=abs(newx-curx), dy=abs(newy-cury);
-                    if (__builtin_popcount(dx)+__builtin_popcount(dy)<=min_bit) 
-                    {
-                        min_bit=__builtin_popcount(dx)+__builtin_popcount(dy);
-                        ans={newx, newy};
-                    }
-                }
-                visited[newx][newy]=1;
-                q.push({newx, newy});
-            } 
+    ll dx=abs(curx-newx);
+    ll dy=abs(cury-newy);
+    vector<ll> dist;
+    for (ll i=0; i<len; i++) dist.push_back(dx);
+    ll num_steps=0;
+    for (ll i=0; i<len; i++) {
+        for (ll k=8; k>=0; k--) if (dist[i]&(1LL<<k)) {
+            ++num_steps;
+            ll die_id=(k==0?0:3*k-2);
+            for (ll j=i; j<len && j<i+dies[die_id].width; j++) 
+                dist[j]-=(1LL<<k);
         }
     }
-    return ans;
+    ll L=(__builtin_popcount(dy)+num_steps)/len; 
+    return L;
 }
 
-vector<operation> apply_binary_lifting(board cur_board)
+array<ll, 3> z_function(const board &cur_board, const board &goal, ll curx, ll cury) {
+    string s;
+    for (ll j=cury; j<width; j++) s.push_back(goal.matrix[curx][j]);
+    s.push_back('$');
+    ll m=s.size(), min_step=1e9, len=1;
+    pair<ll, ll> ans={-1, -1};
+
+    string x=s;
+    for (ll j=cury; j<width; j++) x.push_back(cur_board.matrix[curx][j]);
+    Z_function z1(x);  
+    for (ll j=m; j<x.size(); j++) 
+        if (z1.z[j]>0 && loss(curx, cury, curx, cury+j-m, z1.z[j])<min_step) {
+            min_step=loss(curx, cury, curx, cury+j-m, z1.z[j]);
+            ans={curx, cury+j-m};
+            len=z1.z[j];
+        }
+
+    for (ll i=curx+1; i<height; i++)
+    {
+        string x=s;
+        for (ll j=0; j<width; j++) x.push_back(cur_board.matrix[i][j]);
+        Z_function z2(x);                        
+        for (ll j=m; j<x.size(); j++) 
+            if (z2.z[j]>0 && loss(curx, cury, i, j-m, z2.z[j])<min_step) {
+                min_step=loss(curx, cury, i, j-m, z2.z[j]);
+                ans={i, j-m};
+                len=z2.z[j];
+            }
+    } 
+    return {ans.first, ans.second, len};
+}
+
+vector<operation> apply_z_funtion(board cur_board)
 {
     vector<operation> answer;
     ll total_cells = height * width;
     ll progress_threshold = 5; // Ngưỡng hiển thị tiến trình (5%)
     ll next_report = progress_threshold * total_cells / 100; 
-    auto start_time = std::chrono::high_resolution_clock::now();
+    auto start_time = chrono::high_resolution_clock::now();
     ll processed_cells = 0; 
 
     for (ll i=0; i<height; i++)
     {
         for (ll j=0; j<width; j++) 
         {
-            auto [x, y]=bfs(cur_board, goal, i, j);
+            processed_cells++;
+            if (cur_board.matrix[i][j]==goal.matrix[i][j]) continue;
+            auto [x, y, len]=z_function(cur_board, goal, i, j);   
             while (y<j) 
             {
                 ll d=j-y;
                 for (ll k=8; k>=0; k--) if (d&(1LL<<k)) 
                 {
-                    cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x, y+1, RIGHT));
-                    answer.push_back(operation((k==0?0:3*k-2), x, y+1, RIGHT));
+                    cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x, y+len, RIGHT));
+                    answer.push_back(operation((k==0?0:3*k-2), x, y+len, RIGHT));
+                    // cout<<"[direction, id, x, y]:   RIGHT "<<dies[(k==0)?0:3*k-2].height<<" "<<x<<" "<<y+len<<" "<<endl;
+                    // cur_board.print();
                     y+=(1LL<<k);
                 }
             }
@@ -433,38 +478,37 @@ vector<operation> apply_binary_lifting(board cur_board)
                 {
                     cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x, y-(1LL<<k), LEFT));
                     answer.push_back(operation((k==0?0:3*k-2), x, y-(1LL<<k), LEFT));
+                    // cout<<"[direction, id, x, y]:   LEFT "<<dies[(k==0)?0:3*k-2].height<<" "<<x<<" "<<y-(1LL<<k)<<" "<<endl;
+                    // cur_board.print();
                     y-=(1LL<<k);
                 }
             }
-            while (x<i)
+
+            vector<ll> row_distances;
+            for (ll l=0; l<len; l++) row_distances.push_back(x);
+            for (ll l=0; l<len; l++) if (y+l<width)
             {
-                ll d=i-x;
-                for (ll k=8; k>=0; k--) if (d&(1LL<<k)) 
-                {
-                    cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x+1, y, BOTTOM));
-                    answer.push_back(operation((k==0?0:3*k-2), x+1, y, BOTTOM));
-                    x+=(1LL<<k);
-                }
-            }
-            while (x>i) 
-            {
-                ll d=x-i;
+                ll d=row_distances[l]-i;      
+                assert(d>=0);
                 for (ll k=8; k>=0; k--) if (d&(1LL<<k))
                 {
-                    cur_board=cur_board.apply_die(operation((k==0?0:3*k-2), x-(1LL<<k), y, TOP));
-                    answer.push_back(operation((k==0?0:3*k-2), x-(1LL<<k), y, TOP));
-                    x-=(1LL<<k);
+                    ll die_id=(k==0?0:3*k-2);
+                    cur_board=cur_board.apply_die(operation(die_id, row_distances[l]-(1LL<<k), y+l, TOP));
+                    answer.push_back(operation(die_id, row_distances[l]-(1LL<<k), y+l, TOP));
+                    assert(row_distances[l]-(1LL<<k)>=i);
+                    for (ll t=l; t<l+dies[die_id].width && t<len; t++) row_distances[t]-=(1LL<<k);
+                    // cout<<"[direction, id, x, y]:   TOP "<<dies[die_id].height<<" "<<row_distances[l]-(1LL<<k)<<" "<<y+l<<" "<<endl;
+                    // cur_board.print();
                 }
             }
-            Fixed[i][j]=1;
 
-            processed_cells++;
             if (processed_cells >= next_report) 
             {
-                auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
-                auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time).count();
+                auto elapsed_time = chrono::high_resolution_clock::now() - start_time;
+                auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(elapsed_time).count();
                 double progress = (double)processed_cells / total_cells * 100;
-                cerr << "\rProcessing: " << std::setw(3) << std::setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s" << flush;
+                cerr << "\rProcessing: " << setw(3) << setfill(' ') << (int)progress << "%, Time elapsed: " << elapsed_ms / 1000.0 << "s" << flush;
+                next_report += progress_threshold * total_cells / 100; 
             }
         }
     }
@@ -517,10 +561,17 @@ void print_answer(const vector<operation> &answer, string id)
 void solve(string question_id) {
     init_die();
     read_input();
-    cerr<<calculate_number_identical_squares(start, goal)<<"/"<<width*height<<endl;
-    vector<operation> answer1=apply_beam_search(3, 1, 0.1);
+    ll cur_matching=calculate_number_identical_squares(start, goal);
+    if (cur_matching==height*width) can_stop=1;
+    cerr<<"Start: "<<endl<<cur_matching<<"/"<<width*height<<endl;
+    vector<operation> answer1;
+    if (width<=32 && height<=32) 
+        answer1=apply_beam_search(5, 3, 0.01);
+    else if (width*height<=64*64) 
+        answer1=apply_beam_search(3, 1, 0.01);
     for (operation opt: answer1) start=start.apply_die(opt);
-    vector<operation> answer2=apply_binary_lifting(start);
+    cerr<<"Apply z-function: "<<endl;
+    vector<operation> answer2=apply_z_funtion(start);
     for (operation opt: answer2) answer1.push_back(opt);
     print_answer(answer1, question_id);
 }

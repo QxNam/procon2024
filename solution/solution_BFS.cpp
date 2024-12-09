@@ -15,7 +15,7 @@
 
 
 using namespace std;
-#define ll long long
+#define ll int 
 #define endl '\n'
 #define sz(x) (ll)(x.size())
 #define TOP 0 

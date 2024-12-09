@@ -14,7 +14,7 @@
 
 
 using namespace std;
-#define ll long long
+#define ll int 
 #define endl '\n'
 #define TOP 0 
 #define BOTTOM 1 
@@ -329,7 +329,7 @@ array<ll, 3> z_function(const board &cur_board, const board &goal, ll curx, ll c
     string s;
     for (ll j=cury; j<width; j++) s.push_back(goal.matrix[curx][j]);
     s.push_back('$');
-    ll m=s.size(), min_step=1e18, len=1;
+    ll m=s.size(), min_step=1e9, len=1;
     pair<ll, ll> ans={-1, -1};
 
     string x=s;

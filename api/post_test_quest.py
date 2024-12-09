@@ -26,11 +26,13 @@ def submit_anwer(question_id:int):
     
     response = requests.post(url_request, json= submit_data, headers=HEADER)
     if response.status_code==200:
+        print("\033[32mSuccess! The response is valid.\033[0m")
         answer_id = response.json().get('id')
         response_answer = requests.get(f"{url_request}/{answer_id}", headers=HEADER)
         print(response_answer.json().get('score_data'))
     else:
-        print("Error submit!")
+        print("\033[31mError submit!\033[0m")
+        print("HTTP Status Code:", response.status_code)
         print(response.json())
         
 def submit_anwer_test(question_id:int):
@@ -45,6 +47,7 @@ def submit_anwer_test(question_id:int):
     
     response = requests.post(url_request, json= submit_data, headers=HEADER)
     if response.status_code==200:
+        print("\033[32mSuccess! The response is valid.\033[0m")
         response_answer = requests.get(f"{url_request}/{question_id}", headers=HEADER)
         print(response_answer.json())
     else:

@@ -5,3 +5,8 @@
 test.*
 .DS_Store
 venv
+data
+.venv 
+.env
+__pycache__
+solution

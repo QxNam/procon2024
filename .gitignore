@@ -69,3 +69,4 @@ test_problem/*.png
 submissions
 *.db
 .python-version
+!question_database/*.json

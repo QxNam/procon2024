@@ -3,32 +3,30 @@ import requests
 import json
 from config import URL, HEADERS, PWD
 
-def raw_data():
-    response = requests.get(f"{URL}/question", headers=HEADERS)
-    if response.status_code!= 200:
-        print(f"Failed to get question: {response.status_code}")
-        return None
-    for data in response.json()['data']:
-        _id = data.get('id')
-        with open(f"{PWD}/original_data/{_id}.json", "w", encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-        print(f"✅ Saved question id: {_id}")
-
+# def raw_data():
+#     response = requests.get(f"{URL}/question", headers=HEADERS)
+#     if response.status_code!= 200:
+#         print(f"Failed to get question: {response.status_code}")
+#         return None
+#     for data in response.json()['data']:
+#         _id = data.get('id')
+#         with open(f"{PWD}/original_data/{_id}.json", "w", encoding='utf-8') as f:
+#             json.dump(data, f, ensure_ascii=False, indent=4)
+#         print(f"✅ Saved question id: {_id}")
 
 def process_request(response):
     try:
         id_ = response.get('id')
-        question_data = eval(response.get('question_data'))
+        question_data = eval(response.get('question_data')) if id_ < 101 else response
         general_die = question_data.get('general', {}).get('patterns',[])
-        data = {
+        return {
             "id": id_,
-            "h": question_data.get('board').get('height'),
-            "w": question_data.get('board').get('width'),
-            "board": question_data.get('board').get('start'),
-            "goal": question_data.get('board').get('goal'),
+            "h": question_data.get('height'),
+            "w": question_data.get('width'),
+            "board": question_data.get('start'),
+            "goal": question_data.get('goal'),
             "dies": [i.get("cells") for i in general_die]
         }
-        return data
     except Exception as e:
         print(f"Wrong question {id_}: {e}")
         return None

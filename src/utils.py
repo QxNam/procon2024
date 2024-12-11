@@ -2,12 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import os
+import imageio
 import json
 from time import time
 PWD = os.path.dirname(os.path.realpath(__file__))
 loaded_data = np.load(f'{PWD}/states/pattents.npz')
 
-def _choose(id:int=1):
+def _choose(id:int=0):
     '''
     Parse die in numpy format
     Args:
@@ -23,7 +24,7 @@ def load_dies():
     Returns:
         list: list of np.ndarray
     '''
-    return [_choose(i) for i in range(24)]
+    return [_choose(i) for i in range(25)]
 
 def get_point(game: np.ndarray, die: np.ndarray, x: int, y: int) -> tuple:
     '''
@@ -112,23 +113,94 @@ def apply_die_cutting(board: np.ndarray, pattent: np.ndarray, x: int, y: int, d:
                 game[:, c] = row
     return game
 
-def save_figure(id, state:np.ndarray, goal:np.ndarray, show=False):
+def load_solution(id):
+    with open(f"{PWD}/solves/{id}.json", "r", encoding='utf-8') as f:
+        solve = json.load(f)
+    return solve
+
+def load_data(id):
+    '''
+    Load the data from the json file
+    Args:
+        id (int): the id of the data
+    Returns:
+    dict: the data loaded from the json file
+    '''
+    with open(f'{PWD}/data/{id}.json', 'r') as f:
+        data = json.load(f)
+    data['board'] = np.array(data['board'])
+    data['goal'] = np.array(data['goal'])
+    data['w'] = data['w']
+    data['h'] = data['h']
+    dies = load_dies()
+    if len(data['dies']) > 0:
+        data['dies'] = dies + [np.array(i) for i in data['dies']]
+    else:
+        data['dies'] = dies
+    return data
+
+def save_figure(id, state:np.ndarray=None, goal:np.ndarray=None, step=0, title=None, show=False, folder='figures'):
     '''Save figure at src/figures
     Args:
-        id (int): the id of the figure
-        state (np.ndarray): the current state
-        goal (np.ndarray): the goal state
-        show (bool): show the figure
+        id (int): ID of the problem
+        state (np.ndarray): Current state
+        goal (np.ndarray): Goal state
+        step (int): Step of the solution
+        show (bool): Show the figure
+        folder (str): Folder to save the figure
     '''
+    PATH = f'{PWD}/{folder}/{id}' if folder else f'{PWD}/{id}'
+    os.makedirs(PATH, exist_ok=True)
+    if state is None and goal is None:
+        data = load_data(id)
+        state = data['board']
+        goal = data['goal']
     check = state == goal
+    score = np.sum(check.astype(int))
     cmap = ListedColormap(['red', 'green'])
     plt.imshow(check.astype(int), cmap=cmap, vmin=0, vmax=1)
     plt.xticks([])
     plt.yticks([])
-    plt.savefig(f'{PWD}/figures/{id}.png', bbox_inches='tight')
+    if title is None:
+        plt.title(f'ID {id} - Step {step} - Score {score/np.prod(check.shape):.2%}')
+    else:
+        plt.title(title)
     if show:
         plt.show()
+    else:
+        plt.savefig(f'{PATH}/{step}.png', bbox_inches='tight')
     plt.close()
+
+def create_gif(id, source_path='figures', gif_path='gifs', duration=0.5):
+    '''
+    Create GIF from images in the specified folder
+    Args:
+        id (int): ID of the problem
+        source_path (str): Folder containing images
+        gif_path (str): Folder to save the GIF
+        duration (float): Duration for each frame
+    '''
+    folder = f'{PWD}/{source_path}/{id}'
+    OUTPUT = f'{PWD}/{gif_path}'
+    os.makedirs(OUTPUT, exist_ok=True)
+    images = []
+    for file_name in sorted(os.listdir(folder)):
+        if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+            images.append(imageio.imread(os.path.join(folder, file_name)))
+    imageio.mimsave(f'{OUTPUT}/{id}.gif', images, duration=duration)
+
+def visualize(id, gif=False):
+    data = load_data(id)
+    state = data['board'].copy()
+    goal = data['goal'].copy()
+    dies = data['dies']
+    solve = load_solution(id)
+    for step, meta in enumerate(solve["answer_data"]["ops"]):
+        p, x, y, s = meta['p'], meta['x'], meta['y'], meta['s']
+        state = apply_die_cutting(state, dies[p], x, y, s)
+        save_figure(id, state, goal, step+1, show=False)
+    if gif:
+        create_gif(id)
 
 def estimate_time(func, **kwargs):
     '''
@@ -143,25 +215,6 @@ def estimate_time(func, **kwargs):
     res = func(**kwargs)
     return time()-start, res
     
-def load_data(id):
-    '''
-    Load the data from the json file
-    Args:
-        id (int): the id of the data
-    Returns:
-    dict: the data loaded from the json file
-    '''
-    with open(f'{PWD}/data/{id}.json', 'r') as f:
-        data = json.load(f)
-    data['board'] = np.array(data['board'])
-    data['goal'] = np.array(data['goal'])
-    dies = load_dies()
-    if len(data['dies']) > 0:
-        data['dies'] = dies + [np.array(i) for i in data['dies']]
-    else:
-        data['dies'] = dies
-    return data
-
 def create_json_submit(id:int, results:list):
     '''
     Create the json file for submitting the answer

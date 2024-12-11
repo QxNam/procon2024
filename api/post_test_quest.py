@@ -9,9 +9,10 @@ import os
 url = f'http://192.168.191.11:8000'
 dotenv.load_dotenv()
 PROCON_TOKEN = os.environ.get('PROCON_TOKEN', "UNKNOWN")
-# HEADER = {"Authorization": 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjQsIm5hbWUiOiJEdW1wbGluZ0NvZGUiLCJpc19hZG1pbiI6ZmFsc2UsImlhdCI6MTczMzg5MzU1MSwiZXhwIjoxNzM0MDY2MzUxfQ.nsEJkRlH1AU8CkU9QdYXN1f_WxrRzEyLGLrz0vHCvmQ'}
-# HEADER = {"Authorization": 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRhaXRydW9uZyIsImV4cCI6MTczMzk3MDMzNywic3ViIjoidGFpdHJ1b25nIn0.vvipgStwdsqq6YIx2jc06lmd0c-Ge8Phlz4ZYd7yY9U'}
-HEADER = {"Authorization": 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzcsIm5hbWUiOiJJVUguUHJvZ3JhbW1pbmdfTGFiIiwiaXNfYWRtaW4iOmZhbHNlLCJpYXQiOjE3MzM5MDA5NDUsImV4cCI6MTczNDA3Mzc0NX0.XmCuJK6dQJKfERdRGMnghKzYO-hbPJyrZFfbZlwuuJY'}
+HEADER1 = {"Authorization": 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjQsIm5hbWUiOiJEdW1wbGluZ0NvZGUiLCJpc19hZG1pbiI6ZmFsc2UsImlhdCI6MTczMzg5MzU1MSwiZXhwIjoxNzM0MDY2MzUxfQ.nsEJkRlH1AU8CkU9QdYXN1f_WxrRzEyLGLrz0vHCvmQ'}
+HEADER2 = {"Authorization": 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRhaXRydW9uZyIsImV4cCI6MTczMzk3MDMzNywic3ViIjoidGFpdHJ1b25nIn0.vvipgStwdsqq6YIx2jc06lmd0c-Ge8Phlz4ZYd7yY9U'}
+HEADER3 = {"Authorization": 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MzcsIm5hbWUiOiJJVUguUHJvZ3JhbW1pbmdfTGFiIiwiaXNfYWRtaW4iOmZhbHNlLCJpYXQiOjE3MzM5MDA5NDUsImV4cCI6MTczNDA3Mzc0NX0.XmCuJK6dQJKfERdRGMnghKzYO-hbPJyrZFfbZlwuuJY'}
+HEADER = HEADER1
 parser = argparse.ArgumentParser(description="Process some integers.")
 parser.add_argument("--question_id", type=int, required=True, help="ID cần nhập vào")
 
@@ -61,10 +62,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     question_id = args.question_id 
     if url == "https://proconvn.duckdns.org":
+        HEADER=HEADER1
         submit_anwer(question_id)
     elif url== f'http://192.168.191.11:8000':
+        HEADER=HEADER2
         submit_anwer(question_id)
     else: 
+        HEADER=HEADER3
         submit_anwer_test(question_id)
         
     

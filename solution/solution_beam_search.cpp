@@ -386,7 +386,7 @@ vector<operation> apply_beam_search(ll max_steps=1, ll max_candidates=1, double 
     {
         cerr<<"Generation "<<i+1<<endl;
         candides=create_next_generations(candides, dies, max_candidates, grow_rate);
-        if (1.0-1.0*pre_num_matching/best_num_matching<grow_rate) break;
+        // if (1.0-1.0*pre_num_matching/best_num_matching<grow_rate) break;
     }
     cerr<<"Beam search finished."<<endl;
     return candides[0];

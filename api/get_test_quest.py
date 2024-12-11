@@ -4,11 +4,12 @@ import argparse
 import dotenv
 import os
 
-url = f"https://proconvn.duckdns.org"
+# url = f"https://proconvn.duckdns.org"
 url = f"https://procon.iuhkart.systems"              # nhớ sửa lại PROCON_TOKEN trong .env trong get_test_quest và post_test_quest 
 dotenv.load_dotenv()
 PROCON_TOKEN = os.environ.get('PROCON_TOKEN', "UNKNOWN")
-HEADER = {"Authorization": PROCON_TOKEN}
+# HEADER = {"Authorization": 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjQsIm5hbWUiOiJEdW1wbGluZ0NvZGUiLCJpc19hZG1pbiI6ZmFsc2UsImlhdCI6MTczMzg5MzU1MSwiZXhwIjoxNzM0MDY2MzUxfQ.nsEJkRlH1AU8CkU9QdYXN1f_WxrRzEyLGLrz0vHCvmQ'}
+HEADER = {"Authorization": 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRhaXRydW9uZyIsImV4cCI6MTczMzk3MDMzNywic3ViIjoidGFpdHJ1b25nIn0.vvipgStwdsqq6YIx2jc06lmd0c-Ge8Phlz4ZYd7yY9U'}
 
 parser = argparse.ArgumentParser(description="Process some integers.")
 parser.add_argument("--question_id", type=int, required=True, help="ID question cần nhập vào")

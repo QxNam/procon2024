@@ -195,6 +195,7 @@ def visualize(id, gif=False):
     goal = data['goal'].copy()
     dies = data['dies']
     solve = load_solution(id)
+    save_figure(id, state, goal, show=False)
     for step, meta in enumerate(solve["answer_data"]["ops"]):
         p, x, y, s = meta['p'], meta['x'], meta['y'], meta['s']
         state = apply_die_cutting(state, dies[p], x, y, s)

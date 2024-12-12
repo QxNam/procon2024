@@ -1,7 +1,6 @@
 from utils import apply_die_cutting, load_data, apply_die_cutting, visualize, save_figure, create_json_submit
 import sys
 from time import time
-import itertools
 import argparse
 
 def get_one_dies(dies, max_size=None):
@@ -54,43 +53,106 @@ def get_points(check):
             break
     return [(start_x, start_y), (end_x, end_y)]
 
-
-def search_with_thresh(board, goal, n_dies=1, n_steps=3):
+def first_search_max(board, goal) -> dict:
+    s_time = time()
     max_score = board.size
-    thresh = 0
-    results = []
     state = board.copy()
-    size = max(state.shape)
-    for step in range(n_steps):
+    check = state == goal
+    directions = get_direction(check)
+    xy_start, xy_end = get_points(check)
+    x_start, y_start = xy_start
+    x_end, y_end = xy_end
+    step_score = sum(check.astype(int).flatten())
+    thresh = step_score/max_score
+    step_result = None
+    max_state = None
+    for x in range(x_start, x_end+1):
+        for y in range(y_start, y_end+1):
+            die_idxs = get_dies_by_size(dies, max(x_end-x_start+1, y_end-y_start+1))
+            for id_die in die_idxs:
+                for direction in directions:
+                    new_state = apply_die_cutting(state, dies[id_die], x, y, direction)
+                    new_thresh = sum((new_state==goal).astype(int).flatten())/max_score
+                    if new_thresh > thresh:
+                        thresh = new_thresh
+                        max_state = new_state
+                        step_result = {'p': id_die, 'x': x, 'y': y, 's': direction}
+                    print('\r'+f'Search die - Correct {new_thresh*100:.2f}% - Time: {(time()-s_time):.2f} seconds', end='')
+                    sys.stdout.flush()
+    return step_result, max_state, thresh
+
+def search_with_max_threshold(board, goal, n_dies=1, n_steps=3):
+    state = board.copy()
+    max_score = state.size
+    res1, state, thresh = first_search_max(state, goal)
+    results = [res1] if res1 is not None else []
+    print('\r' + f"\n🟢 Step {1}: Correct {thresh*100:.2f}% - Output {res1}")
+    id_die = res1['p']
+    for step in range(1, n_steps):
         s_time = time()
         check = state == goal
-        directions = get_direction(check) # lấy các hướng có thể dùng cho state
+        directions = get_direction(check)
         xy_start, xy_end = get_points(check)
         x_start, y_start = xy_start
         x_end, y_end = xy_end
-        step_score = sum(check.astype(int).flatten())
-        thresh = step_score/max_score
+        thresh = sum(check.astype(int).flatten())/max_score
         max_state = state.copy()
         step_result = None
         for x in range(x_start, x_end+1):
             for y in range(y_start, y_end+1):
-                die_idxs = get_dies_by_size(dies, max(x_end-x_start+1, y_end-y_start+1))
-                for id_die in die_idxs:
-                    for direction in directions:
-                        new_state = apply_die_cutting(state, dies[id_die], x, y, direction)
-                        new_thresh = sum((new_state==goal).astype(int).flatten())/max_score
-                        if new_thresh > thresh:
-                            thresh = new_thresh
-                            max_state = new_state.copy()
-                            step_result = {'p': id_die, 'x': x, 'y': y, 's': direction}
-                        progress_info = f"Step {step+1}: Correct percent {new_thresh:.2f}"
-                        print('\r' + progress_info, end='')
-                        sys.stdout.flush()
-        print('\r' + f"\n🟢 Step {step+1}: Correct percent {thresh:.2f} - Output {step_result} - Time: {time()-s_time:.2f}s")
+                for direction in directions:
+                    new_state = apply_die_cutting(state, dies[id_die], x, y, direction)
+                    new_thresh = sum((new_state==goal).astype(int).flatten())/max_score
+                    if new_thresh > thresh:
+                        thresh = new_thresh
+                        max_state = new_state.copy()
+                        step_result = {'p': id_die, 'x': x, 'y': y, 's': direction}
+                    progress_info = f"Step {step+1}: Correct {new_thresh*100:.2f} - Time: {(time()-s_time):.2f} seconds"
+                    print('\r' + progress_info, end='')
+                    sys.stdout.flush()
+        print('\r' + f"\n🟢 Step {step+1}: Correct {thresh*100:.2f}% - Output {step_result}")
         state = max_state.copy()
         if step_result is not None:
             results.append(step_result)
     return results
+
+
+# def search_with_thresh(board, goal, n_dies=1, n_steps=3):
+#     max_score = board.size
+#     thresh = 0
+#     results = []
+#     state = board.copy()
+#     size = max(state.shape)
+#     for step in range(n_steps):
+#         s_time = time()
+#         check = state == goal
+#         directions = get_direction(check) # lấy các hướng có thể dùng cho state
+#         xy_start, xy_end = get_points(check)
+#         x_start, y_start = xy_start
+#         x_end, y_end = xy_end
+#         step_score = sum(check.astype(int).flatten())
+#         thresh = step_score/max_score
+#         max_state = state.copy()
+#         step_result = None
+#         for x in range(x_start, x_end+1):
+#             for y in range(y_start, y_end+1):
+#                 die_idxs = get_dies_by_size(dies, max(x_end-x_start+1, y_end-y_start+1))
+#                 for id_die in die_idxs:
+#                     for direction in directions:
+#                         new_state = apply_die_cutting(state, dies[id_die], x, y, direction)
+#                         new_thresh = sum((new_state==goal).astype(int).flatten())/max_score
+#                         if new_thresh > thresh:
+#                             thresh = new_thresh
+#                             max_state = new_state.copy()
+#                             step_result = {'p': id_die, 'x': x, 'y': y, 's': direction}
+#                         progress_info = f"Step {step+1}: Correct percent {new_thresh:.2f}"
+#                         print('\r' + progress_info, end='')
+#                         sys.stdout.flush()
+#         print('\r' + f"\n🟢 Step {step+1}: Correct percent {thresh:.2f} - Output {step_result} - Time: {time()-s_time:.2f}s")
+#         state = max_state.copy()
+#         if step_result is not None:
+#             results.append(step_result)
+#     return results
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="1 dies, n_move")
@@ -104,6 +166,6 @@ if __name__ == '__main__':
     w = data['w']
     h = data['h']
 
-    results = search_with_thresh(board, goal)
+    results = search_with_max_threshold(board, goal)
     create_json_submit(_id, results)
     visualize(_id, True)
